@@ -1,15 +1,42 @@
 export type TaskStatus = "active" | "waiting" | "someday" | "done";
 export type SessionLabel = "morning" | "afternoon" | "evening" | "general";
 export type TimeOfDay = "morning" | "midday" | "evening";
+export type PriorityLabel = "Hot" | "Warm" | "Cool" | "Cold";
+export type SchedulingMode = "manual" | "auto";
+export type ProjectStatus = "active" | "completed" | "archived" | "on_hold";
+
+export interface Project {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  status: ProjectStatus;
+}
 
 export interface Task {
   id: string;
   created_at: string;
+  updated_at: string;
+  user_id: string;
   title: string;
+  description: string | null;
   status: TaskStatus;
-  project: string | null;
+  project_id: string | null;
+  project?: Project | null;
   notes: string | null;
   due_date: string | null;
+  // Scheduling fields
+  priority_level: number; // 1-4 (1=Hot, 4=Cold)
+  priority_label: PriorityLabel;
+  scheduling_mode: SchedulingMode;
+  estimated_duration: number; // minutes
+  start_time: string | null;
+  end_time: string | null;
+  locked: boolean;
+  is_completed: boolean;
 }
 
 export interface SpotifyUser {
@@ -56,6 +83,7 @@ export interface Checkin {
   energy_level: number | null;
 }
 
+// Legacy - will be removed once projects are fully database-driven
 export const PROJECT_OPTIONS = [
   "GA",
   "Smart Trader",
@@ -65,4 +93,4 @@ export const PROJECT_OPTIONS = [
   "Personal",
 ] as const;
 
-export type Project = (typeof PROJECT_OPTIONS)[number];
+export type LegacyProject = (typeof PROJECT_OPTIONS)[number];

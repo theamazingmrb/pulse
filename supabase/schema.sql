@@ -3,24 +3,53 @@
 -- Run this in your Supabase SQL editor
 -- ─────────────────────────────────────────
 
--- Enable Row Level Security
-alter table tasks enable row level security;
-alter table journals enable row level security;
-alter table journal_tasks enable row level security;
-alter table checkins enable row level security;
+-- Enable UUID extension
+create extension if not exists "uuid-ossp";
 
--- Tasks
-create table if not exists tasks (
+-- ─────────────────────────────────────────
+-- Projects (user-defined, replaces hardcoded list)
+-- ─────────────────────────────────────────
+create table if not exists projects (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
+  updated_at  timestamptz default now(),
   user_id     uuid references auth.users(id) on delete cascade not null,
-  title       text not null,
-  status      text default 'active'
-              check (status in ('active', 'waiting', 'someday', 'done')),
-  project     text,
-  notes       text,
-  due_date    date
+  name        text not null,
+  description text,
+  color       text default '#3B82F6',
+  status      text default 'active' check (status in ('active', 'completed', 'archived', 'on_hold')),
+  unique(user_id, name)
 );
+
+-- ─────────────────────────────────────────
+-- Tasks (enhanced with scheduling)
+-- ─────────────────────────────────────────
+create table if not exists tasks (
+  id                  uuid primary key default gen_random_uuid(),
+  created_at          timestamptz default now(),
+  updated_at          timestamptz default now(),
+  user_id             uuid references auth.users(id) on delete cascade not null,
+  title               text not null,
+  description         text,
+  status              text default 'active'
+                      check (status in ('active', 'waiting', 'someday', 'done')),
+  project_id          uuid references projects(id) on delete set null,
+  notes               text,
+  due_date            timestamptz,
+  -- Scheduling fields
+  priority_level      int default 1 check (priority_level between 1 and 4),
+  priority_label      text default 'Hot' check (priority_label in ('Hot', 'Warm', 'Cool', 'Cold')),
+  scheduling_mode     text default 'manual' check (scheduling_mode in ('manual', 'auto')),
+  estimated_duration  int default 30, -- minutes
+  start_time          timestamptz,
+  end_time            timestamptz,
+  locked              boolean default false,
+  is_completed        boolean default false
+);
+
+-- Enable Row Level Security
+alter table projects enable row level security;
+alter table tasks enable row level security;
 
 -- Journals
 create table if not exists journals (
@@ -83,6 +112,19 @@ create or replace view journals_with_tasks as
 
 -- Row Level Security Policies
 -- Users can only access their own data
+
+-- Projects policies
+create policy "Users can view own projects" on projects
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own projects" on projects
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own projects" on projects
+  for update using (auth.uid() = user_id);
+
+create policy "Users can delete own projects" on projects
+  for delete using (auth.uid() = user_id);
 
 -- Tasks policies
 create policy "Users can view own tasks" on tasks
@@ -150,3 +192,34 @@ create policy "Users can update own checkins" on checkins
 
 create policy "Users can delete own checkins" on checkins
   for delete using (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────
+-- Indexes for performance
+-- ─────────────────────────────────────────
+create index if not exists idx_tasks_user_id on tasks(user_id);
+create index if not exists idx_tasks_status on tasks(status);
+create index if not exists idx_tasks_priority_level on tasks(priority_level);
+create index if not exists idx_tasks_start_time on tasks(start_time);
+create index if not exists idx_tasks_project_id on tasks(project_id);
+create index if not exists idx_projects_user_id on projects(user_id);
+create index if not exists idx_journals_user_id on journals(user_id);
+create index if not exists idx_checkins_user_id on checkins(user_id);
+
+-- ─────────────────────────────────────────
+-- Triggers for updated_at
+-- ─────────────────────────────────────────
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger update_tasks_updated_at
+  before update on tasks
+  for each row execute function update_updated_at_column();
+
+create trigger update_projects_updated_at
+  before update on projects
+  for each row execute function update_updated_at_column();

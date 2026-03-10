@@ -1,13 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Task, TaskStatus, PROJECT_OPTIONS } from "@/types";
-import { cn, PROJECT_COLORS, STATUS_COLORS } from "@/lib/utils";
-import { Plus, Check, Trash2 } from "lucide-react";
+import { Task, TaskStatus } from "@/types";
+import { cn } from "@/lib/utils";
+import { Plus, Check, Trash2, Clock, Zap, Lock, ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { getTasks, deleteTask, updateTask, completeTask, uncompleteTask, PRIORITY_CONFIG } from "@/lib/tasks";
+import TaskForm from "@/components/tasks/TaskForm";
+import PrioritySelector from "@/components/tasks/PrioritySelector";
 
 const STATUS_TABS: { value: TaskStatus | "all"; label: string }[] = [
   { value: "all", label: "All" },
@@ -18,79 +21,117 @@ const STATUS_TABS: { value: TaskStatus | "all"; label: string }[] = [
 ];
 
 export default function TasksPage() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filter, setFilter] = useState<TaskStatus | "all">("active");
-  const [newTitle, setNewTitle] = useState("");
-  const [newProject, setNewProject] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (user) {
+      load();
+    }
+  }, [user]);
 
   async function load() {
-    const { data } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
-    setTasks(data ?? []);
+    if (!user) return;
+    setLoading(true);
+    const data = await getTasks(user.id);
+    setTasks(data);
+    setLoading(false);
   }
 
-  async function addTask() {
-    if (!newTitle.trim()) return;
-    setAdding(true);
-    const { error } = await supabase.from("tasks").insert({
-      title: newTitle.trim(),
-      project: newProject || null,
-      status: "active",
+  async function handleDelete(id: string) {
+    const success = await deleteTask(id);
+    if (success) {
+      toast.success("Task deleted");
+      load();
+    } else {
+      toast.error("Failed to delete task");
+    }
+  }
+
+  async function handleToggleComplete(task: Task) {
+    const result = task.is_completed
+      ? await uncompleteTask(task.id)
+      : await completeTask(task.id);
+    
+    if (result) {
+      load();
+    }
+  }
+
+  async function handleStatusChange(id: string, status: TaskStatus) {
+    const result = await updateTask(id, { 
+      status,
+      is_completed: status === "done",
     });
-    setAdding(false);
-    if (error) { toast.error("Failed to add task"); return; }
-    setNewTitle("");
-    setNewProject("");
-    toast.success("Task added");
-    load();
-  }
-
-  async function updateStatus(id: string, status: TaskStatus) {
-    await supabase.from("tasks").update({ status }).eq("id", id);
-    load();
-  }
-
-  async function deleteTask(id: string) {
-    await supabase.from("tasks").delete().eq("id", id);
-    toast.success("Task deleted");
-    load();
+    if (result) {
+      load();
+    }
   }
 
   const filtered = filter === "all" ? tasks : tasks.filter((t) => t.status === filter);
+
+  const formatDuration = (minutes: number) => {
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    }
+    return `${minutes}m`;
+  };
+
+  const formatScheduledTime = (startTime: string | null, endTime: string | null) => {
+    if (!startTime) return null;
+    const start = new Date(startTime);
+    const end = endTime ? new Date(endTime) : null;
+    
+    const timeStr = start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const dateStr = start.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    
+    if (end) {
+      const endTimeStr = end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      return `${dateStr} · ${timeStr} - ${endTimeStr}`;
+    }
+    return `${dateStr} · ${timeStr}`;
+  };
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-muted-foreground">Please sign in to view tasks.</p>
+      </div>
+    );
+  }
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1">Tasks</h1>
-        <p className="text-muted-foreground text-sm">Keep it simple — what are you actually doing?</p>
+        <p className="text-muted-foreground text-sm">Smart scheduling for what matters most.</p>
       </div>
 
-      {/* Add task */}
-      <div className="rounded-xl border border-border bg-card p-4 mb-6 flex gap-3">
-        <input
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addTask()}
-          placeholder="Add a task..."
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        />
-        <select
-          value={newProject}
-          onChange={(e) => setNewProject(e.target.value)}
-          className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary text-muted-foreground"
-        >
-          <option value="">Project</option>
-          {PROJECT_OPTIONS.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <Button size="sm" onClick={addTask} disabled={adding || !newTitle.trim()}>
-          <Plus size={14} /> Add
+      {/* Add task button / form */}
+      {showForm ? (
+        <div className="rounded-xl border border-border bg-card p-4 mb-6">
+          <TaskForm
+            onSuccess={(task) => {
+              setShowForm(false);
+              load();
+            }}
+            onCancel={() => setShowForm(false)}
+          />
+        </div>
+      ) : (
+        <Button onClick={() => setShowForm(true)} className="mb-6">
+          <Plus size={16} className="mr-2" /> New Task
         </Button>
-      </div>
+      )}
 
       {/* Filter tabs */}
-      <div className="flex gap-1 mb-5">
+      <div className="flex gap-1 mb-5 flex-wrap">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -112,57 +153,181 @@ export default function TasksPage() {
 
       {/* Task list */}
       <div className="flex flex-col gap-2">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <p className="text-sm text-muted-foreground text-center py-8">Loading tasks...</p>
+        ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">No tasks here.</p>
         ) : (
-          filtered.map((task) => (
-            <div key={task.id}
-              className="group flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:border-primary/30 transition-colors"
-            >
-              <button
-                onClick={() => updateStatus(task.id, task.status === "done" ? "active" : "done")}
+          filtered.map((task) => {
+            const priorityConfig = PRIORITY_CONFIG[task.priority_level as keyof typeof PRIORITY_CONFIG];
+            const isExpanded = expandedTaskId === task.id;
+            const scheduledTime = formatScheduledTime(task.start_time, task.end_time);
+
+            return (
+              <div
+                key={task.id}
                 className={cn(
-                  "w-5 h-5 rounded flex items-center justify-center border flex-shrink-0 transition-colors",
-                  task.status === "done" ? "bg-green-500 border-green-500" : "border-border hover:border-primary"
+                  "group rounded-lg border bg-card transition-all",
+                  task.is_completed
+                    ? "border-border/50 opacity-60"
+                    : "border-border hover:border-primary/30"
                 )}
               >
-                {task.status === "done" && <Check size={12} className="text-white" />}
-              </button>
+                {/* Main row */}
+                <div className="flex items-center gap-3 px-4 py-3">
+                  {/* Complete checkbox */}
+                  <button
+                    onClick={() => handleToggleComplete(task)}
+                    className={cn(
+                      "w-5 h-5 rounded flex items-center justify-center border flex-shrink-0 transition-colors",
+                      task.is_completed
+                        ? "bg-green-500 border-green-500"
+                        : "border-border hover:border-primary"
+                    )}
+                  >
+                    {task.is_completed && <Check size={12} className="text-white" />}
+                  </button>
 
-              <span className={cn("flex-1 text-sm", task.status === "done" && "line-through text-muted-foreground")}>
-                {task.title}
-              </span>
+                  {/* Priority indicator */}
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: priorityConfig?.color }}
+                    title={priorityConfig?.label}
+                  />
 
-              {task.project && (
-                <span className={cn("text-xs px-2 py-0.5 rounded-full border", PROJECT_COLORS[task.project] ?? "bg-secondary border-border text-muted-foreground")}>
-                  {task.project}
-                </span>
-              )}
+                  {/* Title and meta */}
+                  <div className="flex-1 min-w-0">
+                    <span
+                      className={cn(
+                        "text-sm block truncate",
+                        task.is_completed && "line-through text-muted-foreground"
+                      )}
+                    >
+                      {task.title}
+                    </span>
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                      {task.scheduling_mode === "auto" && (
+                        <span className="flex items-center gap-1">
+                          <Zap size={10} /> Auto
+                        </span>
+                      )}
+                      {task.locked && (
+                        <span className="flex items-center gap-1 text-amber-500">
+                          <Lock size={10} /> Locked
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Clock size={10} /> {formatDuration(task.estimated_duration)}
+                      </span>
+                      {scheduledTime && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={10} /> {scheduledTime}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-              <select
-                value={task.status}
-                onChange={(e) => updateStatus(task.id, e.target.value as TaskStatus)}
-                className={cn("text-xs px-2 py-0.5 rounded-full border bg-transparent outline-none cursor-pointer capitalize", STATUS_COLORS[task.status])}
-              >
-                <option value="active">Active</option>
-                <option value="waiting">Waiting</option>
-                <option value="someday">Someday</option>
-                <option value="done">Done</option>
-              </select>
+                  {/* Project badge */}
+                  {task.project && (
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full border flex-shrink-0"
+                      style={{
+                        backgroundColor: `${task.project.color}20`,
+                        borderColor: task.project.color,
+                        color: task.project.color,
+                      }}
+                    >
+                      {task.project.name}
+                    </span>
+                  )}
 
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Link href={`/journal/new`} title="Journal about this task">
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <BookOpen size={13} />
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-red-400"
-                  onClick={() => deleteTask(task.id)}>
-                  <Trash2 size={13} />
-                </Button>
+                  {/* Status dropdown */}
+                  <select
+                    value={task.status}
+                    onChange={(e) => handleStatusChange(task.id, e.target.value as TaskStatus)}
+                    className={cn(
+                      "text-xs px-2 py-0.5 rounded-full border bg-transparent outline-none cursor-pointer capitalize",
+                      task.status === "done" && "border-green-500/50 text-green-500",
+                      task.status === "active" && "border-blue-500/50 text-blue-500",
+                      task.status === "waiting" && "border-amber-500/50 text-amber-500",
+                      task.status === "someday" && "border-gray-500/50 text-gray-500"
+                    )}
+                  >
+                    <option value="active">Active</option>
+                    <option value="waiting">Waiting</option>
+                    <option value="someday">Someday</option>
+                    <option value="done">Done</option>
+                  </select>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}
+                      className="p-1.5 rounded hover:bg-secondary transition-colors"
+                      title="Expand"
+                    >
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                    <Link href={`/journal/new`} title="Journal about this task">
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <BookOpen size={13} />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-red-400"
+                      onClick={() => handleDelete(task.id)}
+                    >
+                      <Trash2 size={13} />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Expanded details */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 pt-2 border-t border-border/50">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">Priority</p>
+                        <PrioritySelector
+                          selectedPriority={task.priority_level}
+                          onPriorityChange={async (level) => {
+                            await updateTask(task.id, {
+                              priority_level: level,
+                              priority_label: PRIORITY_CONFIG[level as keyof typeof PRIORITY_CONFIG]?.label as any,
+                            });
+                            load();
+                          }}
+                          compact
+                        />
+                      </div>
+                      {task.description && (
+                        <div className="col-span-2">
+                          <p className="text-muted-foreground text-xs mb-1">Description</p>
+                          <p className="text-sm">{task.description}</p>
+                        </div>
+                      )}
+                      {task.due_date && (
+                        <div>
+                          <p className="text-muted-foreground text-xs mb-1">Due Date</p>
+                          <p className="text-sm">
+                            {new Date(task.due_date).toLocaleDateString([], {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
