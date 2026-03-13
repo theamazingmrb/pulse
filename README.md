@@ -1,15 +1,15 @@
 # Pulse
 
-A full-stack productivity application that helps users maintain focus through structured daily check-ins, task management with intelligent scheduling, and reflective journaling—with optional Spotify integration to soundtrack your workflow.
+Daily check-ins, priority tasks, and journaling — with optional Spotify integration to soundtrack your workflow.
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css)
 
 ## Overview
 
-Pulse is built around a simple idea: **clarity drives productivity**. Rather than overwhelming users with features, it provides focused tools for setting intentions, tracking work, and reflecting on progress.
+Pulse is built around one idea: **clarity drives productivity**. Focused tools for setting intentions, tracking work, and reflecting on progress — without the noise.
 
 ### Key Features
 
@@ -51,7 +51,7 @@ Pulse is built around a simple idea: **clarity drives productivity**. Rather tha
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 15 (App Router, Server Components) |
+| Framework | Next.js 16 (App Router, Server Components) |
 | Language | TypeScript |
 | Database | Supabase (PostgreSQL) |
 | Auth | Supabase Auth with Row Level Security |
