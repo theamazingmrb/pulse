@@ -63,7 +63,7 @@ export default function SignUpPage() {
           </div>
           <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
           <CardDescription>
-            Join Priority Compass to start organizing your focus
+            Join Pulse to start organizing your focus
           </CardDescription>
         </CardHeader>
         

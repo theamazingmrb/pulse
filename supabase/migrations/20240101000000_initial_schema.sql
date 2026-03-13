@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────
--- Priority Compass — Supabase Schema
+-- Pulse — Supabase Schema
 -- Run this in your Supabase SQL editor
 -- ─────────────────────────────────────────
 

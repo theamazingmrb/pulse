@@ -1,4 +1,4 @@
-# Priority Compass
+# Pulse
 
 A full-stack productivity application that helps users maintain focus through structured daily check-ins, task management with intelligent scheduling, and reflective journaling—with optional Spotify integration to soundtrack your workflow.
 
@@ -9,7 +9,7 @@ A full-stack productivity application that helps users maintain focus through st
 
 ## Overview
 
-Priority Compass is built around a simple idea: **clarity drives productivity**. Rather than overwhelming users with features, it provides focused tools for setting intentions, tracking work, and reflecting on progress.
+Pulse is built around a simple idea: **clarity drives productivity**. Rather than overwhelming users with features, it provides focused tools for setting intentions, tracking work, and reflecting on progress.
 
 ### Key Features
 
@@ -92,8 +92,8 @@ Six tables with Row Level Security ensuring complete data isolation between user
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/priority-compass.git
-cd priority-compass
+git clone https://github.com/yourusername/pulse.git
+cd pulse
 pnpm install
 
 # Set up environment

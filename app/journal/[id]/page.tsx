@@ -9,11 +9,12 @@ import { Music, ExternalLink, ArrowLeft, Link2 } from "lucide-react";
 
 export const revalidate = 0;
 
-export default async function JournalEntryPage({ params }: { params: { id: string } }) {
+export default async function JournalEntryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const { data: journal } = await supabase
     .from("journals")
-    .select("*, journal_tasks(tasks(id, title, status, project))")
-    .eq("id", params.id)
+    .select("*, journal_tasks(tasks(id, title, status, project_id))")
+    .eq("id", id)
     .single();
 
   if (!journal) notFound();

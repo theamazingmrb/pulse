@@ -38,7 +38,7 @@ export class SpotifyPlayer {
     return new Promise((resolve, reject) => {
       window.onSpotifyWebPlaybackSDKReady = () => {
         this.player = new window.Spotify.Player({
-          name: "Priority Compass",
+          name: "Pulse",
           getOAuthToken: (cb: (token: string) => void) => {
             this.getFreshToken().then(cb);
           },
