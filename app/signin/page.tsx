@@ -16,7 +16,7 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { signIn } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +42,6 @@ export default function SignInPage() {
       return;
     }
     
-    const { resetPassword } = useAuth();
     const { error } = await resetPassword(email);
     
     if (error) {
@@ -134,7 +133,7 @@ export default function SignInPage() {
             </button>
             
             <div className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/signup" className="text-primary hover:underline">
                 Sign up
               </Link>

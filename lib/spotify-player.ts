@@ -4,11 +4,13 @@ import { SpotifyUser } from "@/types";
 declare global {
   interface Window {
     onSpotifyWebPlaybackSDKReady: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Spotify: any;
   }
 }
 
 export class SpotifyPlayer {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private player: any = null;
   private isReady = false;
   private deviceId: string | null = null;
@@ -56,6 +58,7 @@ export class SpotifyPlayer {
           console.log("Spotify player not ready with device ID:", device_id);
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this.player.addListener("player_state_changed", (state: any) => {
           if (!state) return;
           console.log("Player state changed:", state);

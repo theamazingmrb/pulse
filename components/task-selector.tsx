@@ -1,6 +1,6 @@
 "use client";
 import { Task } from "@/types";
-import { cn, PROJECT_COLORS, STATUS_COLORS } from "@/lib/utils";
+import { cn, STATUS_COLORS } from "@/lib/utils";
 import { Check } from "lucide-react";
 
 interface TaskSelectorProps {

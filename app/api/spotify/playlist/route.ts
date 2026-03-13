@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSpotifyToken } from '@/lib/spotify';
 
 export async function POST(request: NextRequest) {
   try {

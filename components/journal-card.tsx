@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Journal } from "@/types";
-import { cn, formatDate, formatTime, SESSION_EMOJI, PROJECT_COLORS } from "@/lib/utils";
+import { cn, formatDate, formatTime, SESSION_EMOJI } from "@/lib/utils";
 import { Music, Link2 } from "lucide-react";
 
 export default function JournalCard({ journal }: { journal: Journal }) {

@@ -33,6 +33,7 @@ export default function TasksPage() {
     if (user) {
       load();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   async function load() {

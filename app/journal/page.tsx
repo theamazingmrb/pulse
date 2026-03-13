@@ -28,8 +28,10 @@ export default function JournalPage() {
       .order("date", { ascending: false })
       .order("created_at", { ascending: false });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const shaped = (data ?? []).map((j: any) => ({
       ...j,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tasks: j.journal_tasks?.map((jt: any) => jt.tasks) ?? [],
     })) as Journal[];
     setJournals(shaped);

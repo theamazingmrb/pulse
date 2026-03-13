@@ -312,7 +312,7 @@ export class SchedulingService {
       }
 
       let dayStart = new Date(date);
-      let dayEnd = new Date(date);
+      const dayEnd = new Date(date);
       dayStart.setHours(options.workingHours!.start, 0, 0, 0);
       dayEnd.setHours(options.workingHours!.end, 0, 0, 0);
 

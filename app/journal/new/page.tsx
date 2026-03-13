@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import SpotifyPicker from "@/components/spotify-picker";
 import TaskSelector from "@/components/task-selector";
-import { SpotifyTrack, Task, SessionLabel, PROJECT_OPTIONS } from "@/types";
+import { SpotifyTrack, Task, SessionLabel } from "@/types";
 import { getSessionLabel, todayISO } from "@/lib/utils";
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp } from "lucide-react";

@@ -29,6 +29,7 @@ export default function ProjectSelector({
     if (user) {
       loadProjects();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadProjects = async () => {

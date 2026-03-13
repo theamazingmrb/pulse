@@ -110,6 +110,7 @@ export const updateTask = async (
   updates: Partial<Task>
 ): Promise<Task | null> => {
   // Remove nested project object if present
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { project, ...cleanUpdates } = updates;
 
   const { data, error } = await supabase

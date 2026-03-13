@@ -7,7 +7,7 @@ import { useSpotify } from "@/lib/spotify-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, Pause, ExternalLink, Calendar, Music, ChevronRight, RefreshCw } from "lucide-react";
-import { formatTime, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import AuthGuard from "@/components/auth-guard";
 import Image from "next/image";
@@ -51,6 +51,7 @@ export default function PlaylistPage() {
       loadPlaylist();
       loadSyncedPlaylist();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   async function loadPlaylist() {
@@ -91,6 +92,7 @@ export default function PlaylistPage() {
       // Group tracks by spotify_track_id
       const trackMap = new Map<string, TrackWithJournals>();
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (data || []).forEach((journal: any) => {
         const trackId = journal.spotify_track_id;
         
@@ -272,7 +274,7 @@ export default function PlaylistPage() {
             <div>
               <h1 className="text-2xl font-bold mb-1">My Journal Playlist</h1>
               <p className="text-muted-foreground text-sm">
-                All the songs you've attached to your journal entries, organized by when you wrote about them.
+                All the songs you&apos;ve attached to your journal entries, organized by when you wrote about them.
               </p>
             </div>
             
