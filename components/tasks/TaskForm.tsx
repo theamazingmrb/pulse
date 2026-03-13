@@ -88,6 +88,7 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         locked,
         status: "active" as const,
         notes: null,
+        image_url: null,
       };
 
       let result: Task | null;

@@ -50,6 +50,8 @@ export default function ProjectSelector({
       description: null,
       color: randomColor,
       status: "active",
+      image_url: null,
+      banner_url: null,
     });
 
     if (newProject) {

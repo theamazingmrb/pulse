@@ -14,6 +14,8 @@ export interface Project {
   description: string | null;
   color: string;
   status: ProjectStatus;
+  image_url: string | null;
+  banner_url: string | null;
 }
 
 export interface Task {
@@ -28,6 +30,7 @@ export interface Task {
   project?: Project | null;
   notes: string | null;
   due_date: string | null;
+  image_url: string | null;
   // Scheduling fields
   priority_level: number; // 1-4 (1=Hot, 4=Cold)
   scheduling_mode: SchedulingMode;
@@ -35,6 +38,13 @@ export interface Task {
   start_time: string | null;
   end_time: string | null;
   locked: boolean;
+}
+
+export interface Profile {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  avatar_url: string | null;
 }
 
 export interface SpotifyUser {
