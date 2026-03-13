@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatTime, SESSION_EMOJI, PROJECT_COLORS, STATUS_COLORS, cn } from "@/lib/utils";
 import { Music, ExternalLink, ArrowLeft, Link2 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function JournalEntryPage({ params }: { params: Promise<{ id: string }> }) {
