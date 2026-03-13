@@ -88,10 +88,19 @@ export class SpotifyPlayer {
         return;
       }
 
+      // Set up global callback before loading script
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        // This will be called by the SDK when ready
+        // The actual initialization happens in initialize() method
+      };
+
       const script = document.createElement("script");
       script.src = "https://sdk.scdn.co/spotify-player.js";
       script.async = true;
-      script.onload = () => resolve();
+      script.onload = () => {
+        // Small delay to ensure SDK is fully loaded
+        setTimeout(resolve, 100);
+      };
       document.body.appendChild(script);
     });
   }

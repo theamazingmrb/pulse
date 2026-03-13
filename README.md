@@ -1,108 +1,141 @@
 # Priority Compass
 
-A personal productivity app to help you stay focused on what matters most. Set daily priorities, track tasks, journal your sessions, and recalibrate throughout the day.
+A full-stack productivity application that helps users maintain focus through structured daily check-ins, task management with intelligent scheduling, and reflective journaling—with optional Spotify integration to soundtrack your workflow.
 
-**Stack:** Next.js 15 · Supabase · Tailwind CSS · Radix UI · Framer Motion · Spotify Web API
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css)
 
----
+## Overview
 
-## Features
+Priority Compass is built around a simple idea: **clarity drives productivity**. Rather than overwhelming users with features, it provides focused tools for setting intentions, tracking work, and reflecting on progress.
 
-| Section | What it does |
-|---|---|
-| **Home** | Today's top priority, active tasks, recent check-ins and journal entries |
-| **Check-in** | Time-aware guided flow (morning / midday / evening) to set or recalibrate your priority, context, and energy level |
-| **Journal** | Write session-based entries with mood tracking. Attach a Spotify track and link entries to tasks |
-| **Tasks** | Task list with status tabs (Active, Waiting, Someday, Done) and optional project labels |
-| **Auth** | Email/password sign-in and sign-up. Each user's data is fully private via Row Level Security |
-| **Theme** | Dark and light mode toggle — sidebar on desktop, top bar on mobile |
-| **Mobile** | Responsive layout with a collapsible sidebar drawer on small screens |
+### Key Features
 
----
+- **Time-Aware Check-ins** — Guided flows that adapt to morning, midday, or evening context. Set your top priority, note potential blockers, and track energy levels throughout the day.
 
-## Setup
+- **Smart Task Management** — Tasks support four priority tiers (Hot → Cold), manual or auto-scheduling modes, duration estimates, and organization by user-created projects.
 
-### 1. Install dependencies
+- **Reflective Journaling** — Session-based entries with mood tracking. Link journal entries to specific tasks to build a narrative around your work.
+
+- **Spotify Integration** — Attach songs to journal entries and automatically sync them to a Spotify playlist. Includes in-app playback via the Web Playback SDK.
+
+- **Responsive Design** — Collapsible sidebar navigation on desktop, bottom tab bar on mobile. Dark and light themes.
+
+## Technical Highlights
+
+### Architecture
+
+```
+├── app/                    # Next.js 15 App Router
+│   ├── api/spotify/        # OAuth + playlist sync endpoints
+│   ├── dashboard/          # Authenticated home
+│   ├── checkin/            # Check-in flow
+│   ├── journal/            # Journal CRUD
+│   ├── playlist/           # Spotify playlist view
+│   └── tasks/              # Task management
+├── components/             # React components
+│   ├── ui/                 # shadcn/ui primitives
+│   └── tasks/              # Task-specific components
+├── lib/                    # Services and utilities
+│   ├── auth-context.tsx    # Auth state management
+│   ├── spotify-context.tsx # Spotify player state
+│   ├── scheduling.ts       # Auto-scheduling algorithm
+│   └── tasks.ts            # Task service layer
+└── supabase/
+    └── migrations/         # Database schema + RLS policies
+```
+
+### Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 15 (App Router, Server Components) |
+| Language | TypeScript |
+| Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth with Row Level Security |
+| Styling | Tailwind CSS + shadcn/ui + Radix primitives |
+| Animation | Framer Motion |
+| External API | Spotify Web API + Web Playback SDK |
+
+### Database Design
+
+Six tables with Row Level Security ensuring complete data isolation between users:
+
+| Table | Purpose |
+|-------|---------|
+| `projects` | User-defined project categories with color coding |
+| `tasks` | Tasks with priority levels, scheduling metadata, and project associations |
+| `journals` | Journal entries with mood, session context, and Spotify track metadata |
+| `journal_tasks` | Many-to-many relationship linking journals to tasks |
+| `checkins` | Priority snapshots with energy levels and context notes |
+| `spotify_playlists` | Synced playlist references for the Spotify integration |
+
+### Notable Implementation Details
+
+- **Auto-scheduling algorithm** scores time slots based on task priority, deadline proximity, and estimated duration to suggest optimal scheduling
+- **Spotify OAuth flow** with token refresh handling and playlist management (create, add tracks, sync)
+- **Context-based state management** for auth, sidebar, and Spotify player state
+- **Optimistic UI updates** for task status changes
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm (recommended) or npm
+- Supabase account (free tier works)
+- Spotify Developer account (optional, for music features)
+
+### Installation
 
 ```bash
+# Clone and install
+git clone https://github.com/yourusername/priority-compass.git
+cd priority-compass
 pnpm install
-```
 
-### 2. Set up Supabase
-
-1. Create a project at [supabase.com](https://supabase.com)
-2. Open the **SQL Editor** and run the contents of `supabase/schema.sql`
-3. Copy your **Project URL** and **Anon Key** from Settings → API
-
-### 3. Set up Spotify *(optional)*
-
-1. Create an app at [developer.spotify.com](https://developer.spotify.com/dashboard)
-2. Enable the **Web Playback SDK** in your app settings
-3. Add `http://127.0.0.1:3000/api/spotify/callback` to your app's **Redirect URIs**
-4. Copy your **Client ID** and **Client Secret**
-
-### 4. Configure environment variables
-
-```bash
+# Set up environment
 cp .env.example .env
-# Fill in your values
+# Add your Supabase and Spotify credentials
+
+# Run locally
+pnpm dev
 ```
 
-### 5. Run the dev server
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
+| `SPOTIFY_CLIENT_ID` | No | Spotify app Client ID |
+| `SPOTIFY_CLIENT_SECRET` | No | Spotify app Client Secret |
+| `SPOTIFY_REDIRECT_URI` | No | OAuth callback URL |
+
+### Database Setup
+
+For local development with Supabase CLI:
 
 ```bash
-pnpm dev
-# Open http://127.0.0.1:3000
+supabase start
+supabase db reset  # Applies migrations automatically
 ```
 
----
+For hosted Supabase, run the migration file in the SQL Editor:
+`supabase/migrations/20240101000000_initial_schema.sql`
 
-## Environment Variables
+## Deployment
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
-| `SPOTIFY_CLIENT_ID` | Spotify app Client ID |
-| `SPOTIFY_CLIENT_SECRET` | Spotify app Client Secret |
-| `SPOTIFY_REDIRECT_URI` | OAuth callback URL (server-side) |
-| `NEXT_PUBLIC_SPOTIFY_CLIENT_ID` | Spotify Client ID (client-side) |
-| `NEXT_PUBLIC_SPOTIFY_REDIRECT_URI` | OAuth callback URL (client-side) |
-
----
-
-## Database Schema
-
-Four tables in Supabase with Row Level Security — users can only access their own data.
-
-| Table | Description |
-|---|---|
-| `tasks` | Tasks with title, status, project, notes, and due date |
-| `journals` | Journal entries with mood, session label, and Spotify metadata |
-| `journal_tasks` | Many-to-many join between journals and tasks |
-| `checkins` | Priority check-ins with top priority, context, and energy level |
-
----
-
-## Routes
-
-| Route | Description |
-|---|---|
-| `/` | Dashboard |
-| `/checkin` | Check-in flow |
-| `/journal` | Journal list |
-| `/journal/new` | New journal entry |
-| `/journal/[id]` | Journal entry detail |
-| `/tasks` | Task manager |
-| `/signin` | Sign in |
-| `/signup` | Sign up |
-
----
-
-## Deploy
-
-Works out of the box with Vercel. Add all environment variables under **Settings → Environment Variables** in the Vercel dashboard, then:
+Optimized for Vercel deployment:
 
 ```bash
 vercel deploy
 ```
+
+Add environment variables in the Vercel dashboard under Settings → Environment Variables.
+
+## License
+
+MIT

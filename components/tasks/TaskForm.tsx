@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Task, SchedulingMode, PriorityLabel } from "@/types";
-import { createTask, updateTask, PRIORITY_CONFIG } from "@/lib/tasks";
+import { Task, SchedulingMode } from "@/types";
+import { createTask, updateTask } from "@/lib/tasks";
 import { useAuth } from "@/lib/auth-context";
 import PrioritySelector from "./PrioritySelector";
 import SchedulingModeSelector from "./SchedulingModeSelector";
@@ -74,15 +74,12 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
     setLoading(true);
 
     try {
-      const priorityLabel = PRIORITY_CONFIG[priorityLevel as keyof typeof PRIORITY_CONFIG]?.label || "Hot";
-
       const taskData = {
         user_id: user.id,
         title: title.trim(),
         description: description.trim() || null,
         project_id: projectId,
         priority_level: priorityLevel,
-        priority_label: priorityLabel as PriorityLabel,
         scheduling_mode: schedulingMode,
         estimated_duration: estimatedDuration,
         start_time: schedulingMode === "manual" && startTime ? new Date(startTime).toISOString() : null,
@@ -91,7 +88,6 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         locked,
         status: "active" as const,
         notes: null,
-        is_completed: false,
       };
 
       let result: Task | null;

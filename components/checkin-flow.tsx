@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 import { getTimeOfDay, getGreeting } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, RefreshCw } from "lucide-react";
@@ -33,6 +34,7 @@ const TOD_PROMPTS = {
 
 export default function CheckinFlow({ onComplete }: { onComplete?: () => void }) {
   const router = useRouter();
+  const { user } = useAuth();
   const tod = getTimeOfDay();
   const prompts = TOD_PROMPTS[tod];
 
@@ -44,9 +46,10 @@ export default function CheckinFlow({ onComplete }: { onComplete?: () => void })
   const [saving, setSaving] = useState(false);
 
   async function save() {
-    if (!topPriority.trim()) return;
+    if (!topPriority.trim() || !user) return;
     setSaving(true);
     const { error } = await supabase.from("checkins").insert({
+      user_id: user.id,
       time_of_day: tod,
       top_priority: topPriority.trim(),
       other_priorities: others.filter(Boolean),
@@ -54,14 +57,18 @@ export default function CheckinFlow({ onComplete }: { onComplete?: () => void })
       energy_level: energy,
     });
     setSaving(false);
-    if (error) { toast.error("Failed to save check-in"); return; }
+    if (error) { 
+      console.error("Check-in error:", error);
+      toast.error("Failed to save check-in"); 
+      return; 
+    }
     toast.success("Check-in saved 🎯");
     setStep("done");
     onComplete?.();
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="w-full">
       <AnimatePresence mode="wait">
         {step === "start" && (
           <Slide key="start">

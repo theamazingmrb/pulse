@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { Task, PriorityLabel } from '@/types';
+import { Task } from '@/types';
 import { SchedulingService, PRIORITY_CONFIG } from './scheduling';
 
 export { PRIORITY_CONFIG };
@@ -66,13 +66,11 @@ export const createTask = async (
     notes: task.notes || null,
     due_date: task.due_date || null,
     priority_level: task.priority_level || 1,
-    priority_label: task.priority_label || 'Hot',
     scheduling_mode: task.scheduling_mode || 'manual',
     estimated_duration: task.estimated_duration || 30,
     start_time: task.start_time || null,
     end_time: task.end_time || null,
     locked: task.locked || false,
-    is_completed: task.is_completed || false,
   };
 
   const { data, error } = await supabase
@@ -152,17 +150,11 @@ export const deleteTask = async (id: string): Promise<boolean> => {
 };
 
 export const completeTask = async (id: string): Promise<Task | null> => {
-  return updateTask(id, {
-    is_completed: true,
-    status: 'done',
-  });
+  return updateTask(id, { status: 'done' });
 };
 
 export const uncompleteTask = async (id: string): Promise<Task | null> => {
-  return updateTask(id, {
-    is_completed: false,
-    status: 'active',
-  });
+  return updateTask(id, { status: 'active' });
 };
 
 export const lockTask = async (id: string): Promise<Task | null> => {
@@ -177,12 +169,7 @@ export const updateTaskPriority = async (
   id: string,
   priorityLevel: number
 ): Promise<Task | null> => {
-  const priorityLabel = PRIORITY_CONFIG[priorityLevel as keyof typeof PRIORITY_CONFIG]?.label || 'Hot';
-  
-  return updateTask(id, {
-    priority_level: priorityLevel,
-    priority_label: priorityLabel as PriorityLabel,
-  });
+  return updateTask(id, { priority_level: priorityLevel });
 };
 
 export const autoScheduleTask = async (
@@ -217,7 +204,7 @@ export const rescheduleOverdueTasks = async (userId: string): Promise<Task[]> =>
   // Find overdue, incomplete, unlocked tasks
   const overdueTasks = allTasks.filter(task =>
     task.end_time &&
-    !task.is_completed &&
+    task.status !== 'done' &&
     !task.locked &&
     new Date(task.end_time) < now
   );

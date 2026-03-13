@@ -9,6 +9,7 @@ import { SpotifyTrack, Task, SessionLabel, PROJECT_OPTIONS } from "@/types";
 import { getSessionLabel, todayISO } from "@/lib/utils";
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import AuthGuard from "@/components/auth-guard";
 
 const SESSION_OPTIONS: { value: SessionLabel; label: string }[] = [
   { value: "morning", label: "🌅 Morning" },
@@ -71,6 +72,7 @@ export default function NewJournalPage() {
   }
 
   return (
+    <AuthGuard>
     <div className="max-w-2xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1">New Entry</h1>
@@ -148,5 +150,6 @@ export default function NewJournalPage() {
         <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
       </div>
     </div>
+    </AuthGuard>
   );
 }

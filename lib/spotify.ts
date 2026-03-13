@@ -38,7 +38,11 @@ export function initiateSpotifyAuth(): void {
     'streaming',
     'user-read-playback-state',
     'user-modify-playback-state',
-    'user-read-currently-playing'
+    'user-read-currently-playing',
+    // Playlist management permissions
+    'playlist-modify-public',
+    'playlist-modify-private', 
+    'playlist-read-private'
   ].join(' ');
   
   const authUrl = new URL('https://accounts.spotify.com/authorize');

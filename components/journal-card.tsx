@@ -43,7 +43,7 @@ export default function JournalCard({ journal }: { journal: Journal }) {
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Link2 size={11} />
               {journal.tasks.slice(0, 2).map((t) => (
-                <span key={t.id} className={cn("px-2 py-0.5 rounded-full border text-xs", PROJECT_COLORS[t.project ?? ""] ?? "bg-secondary border-border")}>
+                <span key={t.id} className={cn("px-2 py-0.5 rounded-full border text-xs", "bg-secondary border-border")}>
                   {t.title}
                 </span>
               ))}

@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,7 +30,7 @@ export default function SignInPage() {
       setError(error.message);
     } else {
       toast.success("Welcome back!");
-      router.push("/");
+      router.push("/dashboard");
     }
     
     setLoading(false);

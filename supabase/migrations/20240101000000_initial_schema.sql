@@ -38,26 +38,28 @@ create table if not exists tasks (
   due_date            timestamptz,
   -- Scheduling fields
   priority_level      int default 1 check (priority_level between 1 and 4),
-  priority_label      text default 'Hot' check (priority_label in ('Hot', 'Warm', 'Cool', 'Cold')),
   scheduling_mode     text default 'manual' check (scheduling_mode in ('manual', 'auto')),
   estimated_duration  int default 30, -- minutes
   start_time          timestamptz,
   end_time            timestamptz,
-  locked              boolean default false,
-  is_completed        boolean default false
+  locked              boolean default false
 );
 
 -- Enable Row Level Security
 alter table projects enable row level security;
 alter table tasks enable row level security;
 
+-- ─────────────────────────────────────────
 -- Journals
+-- ─────────────────────────────────────────
 create table if not exists journals (
   id                  uuid primary key default gen_random_uuid(),
   created_at          timestamptz default now(),
+  updated_at          timestamptz default now(),
   user_id             uuid references auth.users(id) on delete cascade not null,
   date                date not null default current_date,
-  session_label       text default 'general',  -- morning | afternoon | evening | general
+  session_label       text default 'general'
+                      check (session_label in ('morning', 'afternoon', 'evening', 'general')),
   title               text,
   content             text not null,
   mood                text,                     -- emoji or short word
@@ -70,6 +72,8 @@ create table if not exists journals (
   spotify_url         text
 );
 
+alter table journals enable row level security;
+
 -- Journal ↔ Task (many-to-many)
 create table if not exists journal_tasks (
   id         uuid primary key default gen_random_uuid(),
@@ -78,19 +82,28 @@ create table if not exists journal_tasks (
   unique (journal_id, task_id)
 );
 
+alter table journal_tasks enable row level security;
+
+-- ─────────────────────────────────────────
 -- Check-ins (priority recalibrations throughout the day)
+-- ─────────────────────────────────────────
 create table if not exists checkins (
   id             uuid primary key default gen_random_uuid(),
   created_at     timestamptz default now(),
+  updated_at     timestamptz default now(),
   user_id        uuid references auth.users(id) on delete cascade not null,
-  time_of_day    text,                 -- morning | midday | evening
+  time_of_day    text check (time_of_day in ('morning', 'midday', 'evening')),
   top_priority   text not null,
   other_priorities text[],             -- array of up to 2 others
   context        text,                 -- what shifted, blockers, notes
   energy_level   int check (energy_level between 1 and 5)
 );
 
+alter table checkins enable row level security;
+
+-- ─────────────────────────────────────────
 -- Useful views
+-- ─────────────────────────────────────────
 create or replace view journals_with_tasks as
   select
     j.*,
@@ -100,7 +113,7 @@ create or replace view journals_with_tasks as
           'id', t.id,
           'title', t.title,
           'status', t.status,
-          'project', t.project
+          'project_id', t.project_id
         )
       ) filter (where t.id is not null),
       '[]'
@@ -110,8 +123,10 @@ create or replace view journals_with_tasks as
   left join tasks t on t.id = jt.task_id
   group by j.id;
 
+-- ─────────────────────────────────────────
 -- Row Level Security Policies
 -- Users can only access their own data
+-- ─────────────────────────────────────────
 
 -- Projects policies
 create policy "Users can view own projects" on projects
@@ -156,8 +171,8 @@ create policy "Users can delete own journals" on journals
 create policy "Users can view own journal tasks" on journal_tasks
   for select using (
     exists (
-      select 1 from journals j 
-      where j.id = journal_tasks.journal_id 
+      select 1 from journals j
+      where j.id = journal_tasks.journal_id
       and j.user_id = auth.uid()
     )
   );
@@ -165,8 +180,8 @@ create policy "Users can view own journal tasks" on journal_tasks
 create policy "Users can insert own journal tasks" on journal_tasks
   for insert with check (
     exists (
-      select 1 from journals j 
-      where j.id = journal_tasks.journal_id 
+      select 1 from journals j
+      where j.id = journal_tasks.journal_id
       and j.user_id = auth.uid()
     )
   );
@@ -174,8 +189,8 @@ create policy "Users can insert own journal tasks" on journal_tasks
 create policy "Users can delete own journal tasks" on journal_tasks
   for delete using (
     exists (
-      select 1 from journals j 
-      where j.id = journal_tasks.journal_id 
+      select 1 from journals j
+      where j.id = journal_tasks.journal_id
       and j.user_id = auth.uid()
     )
   );
@@ -194,6 +209,23 @@ create policy "Users can delete own checkins" on checkins
   for delete using (auth.uid() = user_id);
 
 -- ─────────────────────────────────────────
+-- Spotify Playlist Sync
+-- ─────────────────────────────────────────
+create table if not exists spotify_playlists (
+  id            uuid primary key default gen_random_uuid(),
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now(),
+  user_id       uuid references auth.users(id) on delete cascade not null,
+  spotify_id    text not null, -- Spotify playlist ID
+  name          text not null,
+  description   text,
+  external_url  text not null,
+  last_synced   timestamptz,
+  auto_sync     boolean default true,
+  track_count   integer default 0
+);
+
+-- ─────────────────────────────────────────
 -- Indexes for performance
 -- ─────────────────────────────────────────
 create index if not exists idx_tasks_user_id on tasks(user_id);
@@ -203,7 +235,12 @@ create index if not exists idx_tasks_start_time on tasks(start_time);
 create index if not exists idx_tasks_project_id on tasks(project_id);
 create index if not exists idx_projects_user_id on projects(user_id);
 create index if not exists idx_journals_user_id on journals(user_id);
+create index if not exists idx_journals_date on journals(date);
 create index if not exists idx_checkins_user_id on checkins(user_id);
+create index if not exists idx_checkins_created_at on checkins(created_at);
+create index if not exists idx_journal_tasks_task_id on journal_tasks(task_id);
+create index if not exists idx_spotify_playlists_user_id on spotify_playlists(user_id);
+create index if not exists idx_spotify_playlists_spotify_id on spotify_playlists(spotify_id);
 
 -- ─────────────────────────────────────────
 -- Triggers for updated_at
@@ -223,3 +260,32 @@ create trigger update_tasks_updated_at
 create trigger update_projects_updated_at
   before update on projects
   for each row execute function update_updated_at_column();
+
+create trigger update_journals_updated_at
+  before update on journals
+  for each row execute function update_updated_at_column();
+
+create trigger update_checkins_updated_at
+  before update on checkins
+  for each row execute function update_updated_at_column();
+
+create trigger update_spotify_playlists_updated_at
+  before update on spotify_playlists
+  for each row execute function update_updated_at_column();
+
+-- ─────────────────────────────────────────
+-- RLS Policies for spotify_playlists
+-- ─────────────────────────────────────────
+alter table spotify_playlists enable row level security;
+
+create policy "Users can view own spotify playlists" on spotify_playlists
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own spotify playlists" on spotify_playlists
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own spotify playlists" on spotify_playlists
+  for update using (auth.uid() = user_id);
+
+create policy "Users can delete own spotify playlists" on spotify_playlists
+  for delete using (auth.uid() = user_id);

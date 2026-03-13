@@ -47,9 +47,9 @@ export default function TaskSelector({ tasks, selected, onChange }: TaskSelector
               {isSelected && <Check size={12} className="text-primary-foreground" />}
             </div>
             <span className="flex-1 truncate">{task.title}</span>
-            {task.project && (
-              <span className={cn("text-xs px-2 py-0.5 rounded-full border", PROJECT_COLORS[task.project] ?? "bg-secondary text-muted-foreground border-border")}>
-                {task.project}
+            {task.project_id && (
+              <span className={cn("text-xs px-2 py-0.5 rounded-full border", "bg-secondary text-muted-foreground border-border")}>
+                Project
               </span>
             )}
             <span className={cn("text-xs px-2 py-0.5 rounded-full border capitalize", STATUS_COLORS[task.status])}>

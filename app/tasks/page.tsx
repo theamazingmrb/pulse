@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getTasks, deleteTask, updateTask, completeTask, uncompleteTask, PRIORITY_CONFIG } from "@/lib/tasks";
 import TaskForm from "@/components/tasks/TaskForm";
 import PrioritySelector from "@/components/tasks/PrioritySelector";
+import AuthGuard from "@/components/auth-guard";
 
 const STATUS_TABS: { value: TaskStatus | "all"; label: string }[] = [
   { value: "all", label: "All" },
@@ -53,7 +54,7 @@ export default function TasksPage() {
   }
 
   async function handleToggleComplete(task: Task) {
-    const result = task.is_completed
+    const result = task.status === "done"
       ? await uncompleteTask(task.id)
       : await completeTask(task.id);
     
@@ -63,10 +64,7 @@ export default function TasksPage() {
   }
 
   async function handleStatusChange(id: string, status: TaskStatus) {
-    const result = await updateTask(id, { 
-      status,
-      is_completed: status === "done",
-    });
+    const result = await updateTask(id, { status });
     if (result) {
       load();
     }
@@ -98,15 +96,8 @@ export default function TasksPage() {
     return `${dateStr} · ${timeStr}`;
   };
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <p className="text-muted-foreground">Please sign in to view tasks.</p>
-      </div>
-    );
-  }
-
   return (
+    <AuthGuard>
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1">Tasks</h1>
@@ -117,7 +108,7 @@ export default function TasksPage() {
       {showForm ? (
         <div className="rounded-xl border border-border bg-card p-4 mb-6">
           <TaskForm
-            onSuccess={(task) => {
+            onSuccess={() => {
               setShowForm(false);
               load();
             }}
@@ -168,7 +159,7 @@ export default function TasksPage() {
                 key={task.id}
                 className={cn(
                   "group rounded-lg border bg-card transition-all",
-                  task.is_completed
+                  task.status === "done"
                     ? "border-border/50 opacity-60"
                     : "border-border hover:border-primary/30"
                 )}
@@ -180,12 +171,12 @@ export default function TasksPage() {
                     onClick={() => handleToggleComplete(task)}
                     className={cn(
                       "w-5 h-5 rounded flex items-center justify-center border flex-shrink-0 transition-colors",
-                      task.is_completed
+                      task.status === "done"
                         ? "bg-green-500 border-green-500"
                         : "border-border hover:border-primary"
                     )}
                   >
-                    {task.is_completed && <Check size={12} className="text-white" />}
+                    {task.status === "done" && <Check size={12} className="text-white" />}
                   </button>
 
                   {/* Priority indicator */}
@@ -200,7 +191,7 @@ export default function TasksPage() {
                     <span
                       className={cn(
                         "text-sm block truncate",
-                        task.is_completed && "line-through text-muted-foreground"
+                        task.status === "done" && "line-through text-muted-foreground"
                       )}
                     >
                       {task.title}
@@ -293,10 +284,7 @@ export default function TasksPage() {
                         <PrioritySelector
                           selectedPriority={task.priority_level}
                           onPriorityChange={async (level) => {
-                            await updateTask(task.id, {
-                              priority_level: level,
-                              priority_label: PRIORITY_CONFIG[level as keyof typeof PRIORITY_CONFIG]?.label as any,
-                            });
+                            await updateTask(task.id, { priority_level: level });
                             load();
                           }}
                           compact
@@ -331,5 +319,6 @@ export default function TasksPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }

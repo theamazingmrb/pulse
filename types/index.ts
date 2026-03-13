@@ -30,13 +30,11 @@ export interface Task {
   due_date: string | null;
   // Scheduling fields
   priority_level: number; // 1-4 (1=Hot, 4=Cold)
-  priority_label: PriorityLabel;
   scheduling_mode: SchedulingMode;
   estimated_duration: number; // minutes
   start_time: string | null;
   end_time: string | null;
   locked: boolean;
-  is_completed: boolean;
 }
 
 export interface SpotifyUser {
@@ -50,7 +48,7 @@ export interface SpotifyTrack {
   id: string;
   name: string;
   artist: string;
-  album_art: string;
+  album_art: string | null;
   preview_url: string | null;
   spotify_url: string;
   uri: string;
@@ -59,6 +57,7 @@ export interface SpotifyTrack {
 export interface Journal {
   id: string;
   created_at: string;
+  updated_at: string;
   date: string;
   session_label: SessionLabel;
   title: string | null;
@@ -76,11 +75,26 @@ export interface Journal {
 export interface Checkin {
   id: string;
   created_at: string;
+  updated_at: string;
   time_of_day: TimeOfDay | null;
   top_priority: string;
   other_priorities: string[] | null;
   context: string | null;
   energy_level: number | null;
+}
+
+export interface SpotifyPlaylist {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  spotify_id: string;
+  name: string;
+  description: string | null;
+  external_url: string;
+  last_synced: string | null;
+  auto_sync: boolean;
+  track_count: number;
 }
 
 // Legacy - will be removed once projects are fully database-driven
