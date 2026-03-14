@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { SchedulingService, PRIORITY_CONFIG } from "@/lib/scheduling";
 import { Task } from "@/types";
 
