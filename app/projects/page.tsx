@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Plus, Folder, MoreHorizontal, Edit, Trash2, Archive, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,9 +36,10 @@ const STATUS_CONFIG: Record<ProjectStatus, { label: string; color: string; textC
 
 export default function ProjectsPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(searchParams.get("create") === "true");
   const [editingProject, setEditingProject] = useState<Project | undefined>();
 
   useEffect(() => {
