@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +29,7 @@ export default function ReflectionView({ reflectionId }: ReflectionViewProps) {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
-  const loadReflection = async () => {
+  const loadReflection = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -43,11 +43,11 @@ export default function ReflectionView({ reflectionId }: ReflectionViewProps) {
     
     setReflection(data);
     setLoading(false);
-  };
+  }, [user, reflectionId, router]);
 
   useEffect(() => {
     loadReflection();
-  }, [reflectionId, loadReflection]);
+  }, [loadReflection]);
 
   const handleDelete = async () => {
     if (!reflection || !user) return;

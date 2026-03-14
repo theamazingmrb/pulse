@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Plus, Folder, MoreHorizontal, Edit, Trash2, Archive, Clock } from "lucide-react";
@@ -42,13 +42,13 @@ function ProjectsPage() {
   const [showForm, setShowForm] = useState(searchParams.get("create") === "true");
   const [editingProject, setEditingProject] = useState<Project | undefined>();
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     const data = await getProjects(user.id);
     setProjects(data);
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {

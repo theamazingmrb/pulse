@@ -4,6 +4,7 @@ import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import Image from "next/image";
 import { uploadImage, deleteImage } from "@/lib/storage";
 import { useAuth } from "@/lib/auth-context";
 
@@ -115,10 +116,12 @@ export default function ImageUpload({
             ASPECT_RATIOS[aspectRatio],
             aspectRatio === "banner" ? "w-full" : PLACEHOLDER_SIZES[bucket]
           )}>
-            <img
+            <Image
               src={value}
               alt="Uploaded image"
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Button

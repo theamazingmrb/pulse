@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,7 @@ export default function ReflectionsList() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ReflectionType>("daily");
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -37,7 +37,7 @@ export default function ReflectionsList() {
     setReflections(reflectionsData);
     setStreaks(streaksData);
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { 
   getUserOnboarding, 
@@ -18,7 +18,7 @@ export function useOnboarding() {
   const [shouldShowOnboarding, setShouldShowOnboarding] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep | null>(null);
 
-  const loadOnboarding = async () => {
+  const loadOnboarding = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -38,7 +38,7 @@ export function useOnboarding() {
     }
 
     setIsLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
