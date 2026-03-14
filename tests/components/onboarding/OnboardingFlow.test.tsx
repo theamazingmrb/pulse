@@ -227,31 +227,32 @@ describe("OnboardingFlow", () => {
       expect(last.id).toBe("complete");
     });
 
-    it("projects step has an action that navigates to /projects?create=true", () => {
+    it("projects step is informational (no action — user creates project after onboarding)", () => {
       const projectsStep = DEFAULT_ONBOARDING_STEPS.find(
         (s) => s.id === "projects"
       );
-      expect(projectsStep?.action).toBeDefined();
-
-      // Mock location
-      const originalLocation = window.location;
-      Object.defineProperty(window, "location", {
-        writable: true,
-        value: { href: "" },
-      });
-      projectsStep!.action!.onClick();
-      expect(window.location.href).toBe("/projects?create=true");
-      Object.defineProperty(window, "location", {
-        writable: true,
-        value: originalLocation,
-      });
+      expect(projectsStep).toBeDefined();
+      // Steps are now purely informational; users create projects via the QuickStartGuide
+      expect(projectsStep?.action).toBeUndefined();
     });
 
-    it("all middle steps have skip: true", () => {
-      const middleSteps = DEFAULT_ONBOARDING_STEPS.slice(1, -1);
-      middleSteps.forEach((step) => {
-        expect(step.skip).toBe(true);
-      });
+    it("all steps can be navigated through without actions", async () => {
+      const user = userEvent.setup();
+      const onComplete = vi.fn();
+      render(
+        <OnboardingFlow
+          {...defaultProps}
+          onComplete={onComplete}
+          steps={DEFAULT_ONBOARDING_STEPS}
+        />
+      );
+      // Click Next through all but the last step
+      for (let i = 0; i < DEFAULT_ONBOARDING_STEPS.length - 1; i++) {
+        await user.click(screen.getByRole("button", { name: /next/i }));
+      }
+      // Last step shows "Get Started"
+      await user.click(screen.getByRole("button", { name: /get started/i }));
+      expect(onComplete).toHaveBeenCalledOnce();
     });
   });
 });

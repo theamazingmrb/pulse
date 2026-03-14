@@ -31,10 +31,14 @@ export function useOnboarding() {
 
     setOnboarding(userOnboarding);
 
-    if (userOnboarding && !userOnboarding.is_completed) {
-      const nextStep = getNextOnboardingStep(userOnboarding.completed_steps);
-      setCurrentStep(nextStep);
-      setShouldShowOnboarding(true);
+    if (userOnboarding) {
+      if (!userOnboarding.is_completed) {
+        const nextStep = getNextOnboardingStep(userOnboarding.completed_steps);
+        setCurrentStep(nextStep);
+        setShouldShowOnboarding(true);
+      } else {
+        setShouldShowOnboarding(false);
+      }
     }
 
     setIsLoading(false);
@@ -73,11 +77,12 @@ export function useOnboarding() {
   const skipOnboardingFlow = async () => {
     if (!user) return false;
 
+    // Always dismiss locally first so the user is never stuck
+    setShouldShowOnboarding(false);
+    setCurrentStep(null);
+
     const success = await skipOnboarding(user.id);
-    
     if (success) {
-      setShouldShowOnboarding(false);
-      setCurrentStep(null);
       await loadOnboarding();
     }
 
