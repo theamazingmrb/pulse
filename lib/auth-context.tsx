@@ -9,6 +9,8 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, name: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+  signInWithSpotify: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
 }
@@ -61,6 +63,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    return { error };
+  };
+
+  const signInWithSpotify = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'spotify',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+        scopes: 'user-read-email user-read-private user-read-playback-state user-modify-playback-state streaming',
+      },
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     return { error };
@@ -79,6 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
+    signInWithSpotify,
     signOut,
     resetPassword,
   };
