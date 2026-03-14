@@ -7,6 +7,7 @@ import { SpotifyProvider } from "@/lib/spotify-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { SidebarProvider } from "@/lib/sidebar-context";
 import { ThemeProvider } from "next-themes";
+import OnboardingTrigger from "@/components/layout/OnboardingTrigger";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -24,8 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <SpotifyProvider>
               <SidebarProvider>
-                <AppShell>{children}</AppShell>
-                <Toaster position="top-right" richColors closeButton />
+                <OnboardingTrigger>
+                  <AppShell>{children}</AppShell>
+                  <Toaster position="top-right" richColors closeButton />
+                </OnboardingTrigger>
               </SidebarProvider>
             </SpotifyProvider>
           </AuthProvider>
