@@ -1,13 +1,19 @@
 echo "🔍 Running ESLint..."
 
-# Run ESLint and check for errors (allow warnings)
-pnpm lint --quiet
+# Run ESLint and check for errors AND warnings
+pnpm lint
 
 # Check the exit code
 if [ $? -ne 0 ]; then
-  echo "❌ ESLint found errors. Please fix them before committing."
+  echo "❌ ESLint found errors or warnings. Please fix them before committing."
   echo ""
   echo "Run 'pnpm lint' to see all issues."
+  echo ""
+  echo "💡 Tips to fix common warnings:"
+  echo "  • Add useCallback for functions in useEffect dependencies"
+  echo "  • Remove unused imports and variables"
+  echo "  • Use Next.js Image instead of img tags"
+  echo "  • Fix TypeScript empty interfaces"
   exit 1
 fi
 
