@@ -1,7 +1,7 @@
 echo "🔍 Running ESLint..."
 
 # Run ESLint and check for errors (allow warnings)
-pnpm lint --quiet --format=compact
+pnpm lint --quiet
 
 # Check the exit code
 if [ $? -ne 0 ]; then
