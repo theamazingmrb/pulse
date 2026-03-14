@@ -1,6 +1,6 @@
 # Pulse
 
-Daily check-ins, priority tasks, and journaling — with optional Spotify integration to soundtrack your workflow.
+Daily check-ins, structured reflections, priority tasks, and journaling — with optional Spotify integration to soundtrack your workflow.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
@@ -19,6 +19,10 @@ Pulse is built around one idea: **clarity drives productivity**. Focused tools f
 
 - **Reflective Journaling** — Session-based entries with mood tracking. Link journal entries to specific tasks to build a narrative around your work.
 
+- **Daily / Weekly / Monthly Reflections** — Structured guided prompts for each cadence. Tracks streaks, shows smart time-based reminders on the dashboard (dismissable), and supports keyword search across all entries.
+
+- **WarMap Year Planning** — Define annual categories and goals. Link tasks directly to WarMap items and review progress during weekly and monthly reflections.
+
 - **Spotify Integration** — Attach songs to journal entries and automatically sync them to a Spotify playlist. Includes in-app playback via the Web Playback SDK.
 
 - **Responsive Design** — Collapsible sidebar navigation on desktop, bottom tab bar on mobile. Dark and light themes.
@@ -28,11 +32,14 @@ Pulse is built around one idea: **clarity drives productivity**. Focused tools f
 ### Architecture
 
 ```
-├── app/                    # Next.js 15 App Router
+├── app/                    # Next.js 16 App Router
 │   ├── api/spotify/        # OAuth + playlist sync endpoints
 │   ├── dashboard/          # Authenticated home
 │   ├── checkin/            # Check-in flow
 │   ├── journal/            # Journal CRUD
+│   ├── reflections/        # Daily/weekly/monthly reflections
+│   ├── warmap/             # Year planning (categories + goals)
+│   ├── projects/           # Project cards
 │   ├── playlist/           # Spotify playlist view
 │   └── tasks/              # Task management
 ├── components/             # React components
@@ -42,7 +49,9 @@ Pulse is built around one idea: **clarity drives productivity**. Focused tools f
 │   ├── auth-context.tsx    # Auth state management
 │   ├── spotify-context.tsx # Spotify player state
 │   ├── scheduling.ts       # Auto-scheduling algorithm
-│   └── tasks.ts            # Task service layer
+│   ├── tasks.ts            # Task service layer
+│   ├── warmap.ts           # WarMap service layer
+│   └── reflections.ts      # Reflections + streak logic
 └── supabase/
     └── migrations/         # Database schema + RLS policies
 ```
@@ -61,7 +70,7 @@ Pulse is built around one idea: **clarity drives productivity**. Focused tools f
 
 ### Database Design
 
-Six tables with Row Level Security ensuring complete data isolation between users:
+Ten tables with Row Level Security ensuring complete data isolation between users:
 
 | Table | Purpose |
 |-------|---------|
@@ -71,6 +80,11 @@ Six tables with Row Level Security ensuring complete data isolation between user
 | `journal_tasks` | Many-to-many relationship linking journals to tasks |
 | `checkins` | Priority snapshots with energy levels and context notes |
 | `spotify_playlists` | Synced playlist references for the Spotify integration |
+| `warmap_categories` | Annual theme categories for year planning |
+| `warmap_items` | Specific goals within a WarMap category |
+| `task_warmap_items` | Many-to-many linking tasks to WarMap goals |
+| `reflections` | Daily/weekly/monthly structured reflections with JSONB sections |
+| `reflection_streaks` | Per-user streak tracking for each reflection cadence |
 
 ### Notable Implementation Details
 
@@ -123,8 +137,12 @@ supabase start
 supabase db reset  # Applies migrations automatically
 ```
 
-For hosted Supabase, run the migration file in the SQL Editor:
-`supabase/migrations/20240101000000_initial_schema.sql`
+For hosted Supabase, run migrations in order in the SQL Editor:
+1. `supabase/migrations/20240101000000_initial_schema.sql`
+2. `supabase/migrations/20240313000000_add_images.sql`
+3. `supabase/migrations/20240313000001_create_storage_buckets.sql`
+4. `supabase/migrations/20260313000000_warmap.sql`
+5. `supabase/migrations/20260313000001_reflections.sql`
 
 ## Deployment
 
