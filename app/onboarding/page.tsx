@@ -13,7 +13,8 @@ export default function OnboardingPage() {
   const { skipOnboarding } = useOnboarding();
   const [currentView, setCurrentView] = useState<OnboardingView>("welcome");
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
+    await skipOnboarding(); // Mark onboarding as complete
     setCurrentView("complete");
     setTimeout(() => {
       router.push("/dashboard");

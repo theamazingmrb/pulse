@@ -2,6 +2,9 @@
 
 Daily check-ins, structured reflections, priority tasks, and journaling — with optional Spotify integration to soundtrack your workflow.
 
+**[Live Demo →](https://vibe-with-pulse.vercel.app)**
+
+![CI](https://github.com/theamazingmrb/pulse/actions/workflows/ci.yml/badge.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)
@@ -9,7 +12,7 @@ Daily check-ins, structured reflections, priority tasks, and journaling — with
 
 ## Overview
 
-Pulse is built around one idea: **clarity drives productivity**. Focused tools for setting intentions, tracking work, and reflecting on progress — without the noise.
+Most productivity apps optimize for volume — more tasks, more tracking, more noise. Pulse is built around a different idea: **clarity drives productivity**. It's a personal operating system for focused people who want to set daily intentions, track what matters, and reflect with structure — without the overhead of enterprise tooling.
 
 ### Key Features
 
@@ -70,7 +73,7 @@ Pulse is built around one idea: **clarity drives productivity**. Focused tools f
 
 ### Database Design
 
-Ten tables with Row Level Security ensuring complete data isolation between users:
+Eleven tables with Row Level Security ensuring complete data isolation between users:
 
 | Table | Purpose |
 |-------|---------|
@@ -106,7 +109,7 @@ Ten tables with Row Level Security ensuring complete data isolation between user
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/pulse.git
+git clone https://github.com/theamazingmrb/pulse.git
 cd pulse
 pnpm install
 

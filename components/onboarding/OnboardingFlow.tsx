@@ -202,60 +202,31 @@ export const DEFAULT_ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: "projects",
     title: "Organize with Projects",
-    description: "Create projects to group related tasks. Add custom colors, descriptions, and even project images to make them uniquely yours.",
+    description: "Create projects to group related tasks. You can add custom colors, descriptions, and project images. Head to the Projects page after onboarding to create your first one!",
     icon: <FolderOpen className="w-8 h-8 text-primary" />,
-    action: {
-      label: "Create Your First Project",
-      onClick: () => {
-        // Navigate to projects page with create modal open
-        window.location.href = "/projects?create=true";
-      },
-    },
-    skip: true,
   },
   {
     id: "tasks",
     title: "Manage Your Tasks",
-    description: "Break down your work into manageable tasks. Set priorities, due dates, and track your progress with our smart scheduling system.",
+    description: "Break down your work into manageable tasks. Set priorities, due dates, and track your progress with our smart scheduling system. The Tasks page is your command center!",
     icon: <Target className="w-8 h-8 text-primary" />,
-    action: {
-      label: "View Tasks",
-      onClick: () => {
-        window.location.href = "/tasks";
-      },
-    },
-    skip: true,
   },
   {
-    id: "journal",
+    id: "reflections",
     title: "Reflect & Grow",
-    description: "Use the journal to capture thoughts, track your mood, and reflect on your progress. Build a habit of daily reflection.",
+    description: "Use daily, weekly, and monthly reflections to track your progress and build self-awareness. The Reflections page helps you stay mindful of your journey.",
     icon: <Calendar className="w-8 h-8 text-primary" />,
-    action: {
-      label: "Open Journal",
-      onClick: () => {
-        window.location.href = "/journal";
-      },
-    },
-    skip: true,
   },
   {
     id: "playlist",
-    title: "Focus with Music",
-    description: "Connect your Spotify account to create focus playlists that help you stay in the zone while working on important tasks.",
+    title: "Focus with Music (Optional)",
+    description: "Connect your Spotify account to soundtrack your work sessions. You can set this up anytime from the Playlist page - it's completely optional!",
     icon: <Music className="w-8 h-8 text-primary" />,
-    action: {
-      label: "Set Up Spotify",
-      onClick: () => {
-        window.location.href = "/playlist";
-      },
-    },
-    skip: true,
   },
   {
     id: "complete",
     title: "You're All Set!",
-    description: "Pulse is ready to help you achieve your goals. Remember to check in daily and keep your tasks organized.",
+    description: "Pulse is ready to help you achieve your goals. Start by creating a project, adding some tasks, or writing your first reflection. Let's build something great together!",
     icon: <Check className="w-8 h-8 text-primary" />,
   },
 ];

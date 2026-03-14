@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import AuthGuard from "@/components/auth-guard";
 import SpotifyConnectBanner from "@/components/spotify-connect-banner";
 import ReflectionReminderBanner from "@/components/reflection-reminder-banner";
+import QuickStartGuide from "@/components/dashboard/QuickStartGuide";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ export default function DashboardPage() {
   const [journals, setJournals] = useState<Journal[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [hasProjects, setHasProjects] = useState(false);
+  const [hasReflections, setHasReflections] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -28,7 +31,13 @@ export default function DashboardPage() {
 
   async function loadData(userId: string) {
     const today = todayISO();
-    const [{ data: checkinsData }, { data: journalsData }, { data: tasksData }] = await Promise.all([
+    const [
+      { data: checkinsData },
+      { data: journalsData },
+      { data: tasksData },
+      { data: projectsData },
+      { data: reflectionsData },
+    ] = await Promise.all([
       supabase
         .from("checkins")
         .select("*")
@@ -49,11 +58,23 @@ export default function DashboardPage() {
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(5),
+      supabase
+        .from("projects")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1),
+      supabase
+        .from("reflections")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1),
     ]);
 
     setCheckins(checkinsData || []);
     setJournals(journalsData || []);
     setTasks(tasksData || []);
+    setHasProjects((projectsData?.length || 0) > 0);
+    setHasReflections((reflectionsData?.length || 0) > 0);
     setDataLoading(false);
   }
 
@@ -76,6 +97,12 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold mb-1">{getGreeting()}</h1>
             <p className="text-muted-foreground text-sm">What matters most right now?</p>
           </div>
+
+          <QuickStartGuide
+            hasProjects={hasProjects}
+            hasTasks={tasks.length > 0}
+            hasReflections={hasReflections}
+          />
 
           <SpotifyConnectBanner />
           <ReflectionReminderBanner />
