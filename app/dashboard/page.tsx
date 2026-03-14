@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
 import AuthGuard from "@/components/auth-guard";
 import SpotifyConnectBanner from "@/components/spotify-connect-banner";
+import ReflectionReminderBanner from "@/components/reflection-reminder-banner";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -77,6 +78,7 @@ export default function DashboardPage() {
           </div>
 
           <SpotifyConnectBanner />
+          <ReflectionReminderBanner />
 
           {/* Today's priority */}
           {latestCheckin ? (

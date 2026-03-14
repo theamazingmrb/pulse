@@ -1,4 +1,26 @@
 export type TaskStatus = "active" | "waiting" | "someday" | "done";
+export type ReflectionType = "daily" | "weekly" | "monthly";
+
+export interface Reflection {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  type: ReflectionType;
+  period_start: string;
+  title: string | null;
+  sections: Record<string, string>;
+  mood: string | null;
+  energy_level: number | null;
+}
+
+export interface ReflectionStreak {
+  user_id: string;
+  type: ReflectionType;
+  current_streak: number;
+  longest_streak: number;
+  last_completed_period: string | null;
+}
 export type SessionLabel = "morning" | "afternoon" | "evening" | "general";
 export type TimeOfDay = "morning" | "midday" | "evening";
 export type PriorityLabel = "Hot" | "Warm" | "Cool" | "Cold";
