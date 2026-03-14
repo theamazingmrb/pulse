@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getTasks, deleteTask, updateTask, completeTask, uncompleteTask, PRIORITY_CONFIG } from "@/lib/tasks";
 import TaskForm from "@/components/tasks/TaskForm";
 import PrioritySelector from "@/components/tasks/PrioritySelector";
+import WarMapSelector from "@/components/tasks/WarMapSelector";
 import AuthGuard from "@/components/auth-guard";
 
 const STATUS_TABS: { value: TaskStatus | "all"; label: string }[] = [
@@ -297,6 +298,9 @@ export default function TasksPage() {
                           <p className="text-sm">{task.description}</p>
                         </div>
                       )}
+                      <div className="col-span-2">
+                        <WarMapSelector taskId={task.id} />
+                      </div>
                       {task.due_date && (
                         <div>
                           <p className="text-muted-foreground text-xs mb-1">Due Date</p>

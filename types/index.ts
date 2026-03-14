@@ -107,6 +107,33 @@ export interface SpotifyPlaylist {
   track_count: number;
 }
 
+export interface WarMapCategory {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  icon: string | null;
+  sort_order: number;
+  items?: WarMapItem[];
+}
+
+export interface WarMapItem {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  category_id: string;
+  title: string;
+  description: string | null;
+  status: "active" | "completed" | "abandoned";
+  target_date: string | null;
+  sort_order: number;
+  tasks?: Task[];
+}
+
 // Legacy - will be removed once projects are fully database-driven
 export const PROJECT_OPTIONS = [
   "GA",

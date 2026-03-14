@@ -39,8 +39,7 @@ interface TrackWithJournals {
 
 export default function PlaylistPage() {
   const { user } = useAuth();
-  const { user: spotifyUser } = useSpotify();
-  const { currentTrack, isPlaying, playerReady, playTrack, pause } = useSpotify();
+  const { user: spotifyUser, currentTrack, isPlaying, playerReady, playTrack, pause } = useSpotify();
   const [tracks, setTracks] = useState<TrackWithJournals[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncedPlaylist, setSyncedPlaylist] = useState<SpotifyPlaylist | null>(null);
@@ -257,14 +256,6 @@ export default function PlaylistPage() {
       await playTrack(spotifyTrack);
     }
   };
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground">Please sign in to view your playlist.</p>
-      </div>
-    );
-  }
 
   return (
     <AuthGuard>

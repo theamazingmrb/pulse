@@ -10,6 +10,7 @@ import { Journal, Checkin, Task } from "@/types";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
 import AuthGuard from "@/components/auth-guard";
+import SpotifyConnectBanner from "@/components/spotify-connect-banner";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -74,6 +75,8 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold mb-1">{getGreeting()}</h1>
             <p className="text-muted-foreground text-sm">What matters most right now?</p>
           </div>
+
+          <SpotifyConnectBanner />
 
           {/* Today's priority */}
           {latestCheckin ? (
