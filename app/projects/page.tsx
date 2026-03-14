@@ -42,12 +42,6 @@ function ProjectsPage() {
   const [showForm, setShowForm] = useState(searchParams.get("create") === "true");
   const [editingProject, setEditingProject] = useState<Project | undefined>();
 
-  useEffect(() => {
-    if (user) {
-      loadProjects();
-    }
-  }, [user]);
-
   const loadProjects = async () => {
     if (!user) return;
     setLoading(true);
@@ -55,6 +49,12 @@ function ProjectsPage() {
     setProjects(data);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (user) {
+      loadProjects();
+    }
+  }, [user, loadProjects]);
 
   const handleDelete = async (id: string) => {
     const success = await deleteProject(id);

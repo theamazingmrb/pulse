@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { saveReflection, upsertStreak, getPendingReminder, getReflections, getReflectionById, getReflectionForPeriod, deleteReflection, getStreaks } from "@/lib/reflections";
+import { saveReflection, upsertStreak, getPendingReminder, getReflections, getReflectionById, deleteReflection, getStreaks } from "@/lib/reflections";
 
 // ── Supabase mock ─────────────────────────────────────────────────────────────
 

@@ -110,7 +110,7 @@ export default function WelcomeScreen({ onGetStarted, onSkip }: WelcomeScreenPro
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Organize tasks, track progress, and stay focused on what matters most. 
-            Let's get you set up with a personalized experience.
+            Let&apos;s get you set up with a personalized experience.
           </p>
         </div>
 

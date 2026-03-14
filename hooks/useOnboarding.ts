@@ -18,15 +18,6 @@ export function useOnboarding() {
   const [shouldShowOnboarding, setShouldShowOnboarding] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep | null>(null);
 
-  useEffect(() => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-
-    loadOnboarding();
-  }, [user]);
-
   const loadOnboarding = async () => {
     if (!user) return;
 
@@ -48,6 +39,15 @@ export function useOnboarding() {
 
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    loadOnboarding();
+  }, [user, loadOnboarding]);
 
   const completeStep = async (step: OnboardingStep) => {
     if (!user) return false;

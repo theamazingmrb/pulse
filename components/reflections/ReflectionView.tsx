@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, Trash2, Calendar, Target, TrendingUp } from "lucide-react";
-import { Reflection, ReflectionType } from "@/types";
+import { Reflection } from "@/types";
 import { useAuth } from "@/lib/auth-context";
 import { getReflectionById, deleteReflection } from "@/lib/reflections";
 import { REFLECTION_LABELS, REFLECTION_PROMPTS, getPeriodLabel } from "@/lib/reflections";
@@ -29,10 +29,6 @@ export default function ReflectionView({ reflectionId }: ReflectionViewProps) {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    loadReflection();
-  }, [reflectionId]);
-
   const loadReflection = async () => {
     if (!user) return;
 
@@ -48,6 +44,10 @@ export default function ReflectionView({ reflectionId }: ReflectionViewProps) {
     setReflection(data);
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadReflection();
+  }, [reflectionId, loadReflection]);
 
   const handleDelete = async () => {
     if (!reflection || !user) return;
@@ -99,7 +99,7 @@ export default function ReflectionView({ reflectionId }: ReflectionViewProps) {
       <div className="text-center py-12">
         <h3 className="text-lg font-semibold mb-2">Reflection not found</h3>
         <p className="text-muted-foreground mb-4">
-          This reflection doesn't exist or you don't have access to it.
+          This reflection doesn&apos;t exist or you don&apos;t have access to it.
         </p>
         <Button onClick={() => router.push("/reflections")}>
           Back to Reflections

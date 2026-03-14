@@ -25,12 +25,6 @@ export default function ReflectionsList() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ReflectionType>("daily");
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
   const loadData = async () => {
     if (!user) return;
     
@@ -44,6 +38,12 @@ export default function ReflectionsList() {
     setStreaks(streaksData);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   const getReflectionsByType = (type: ReflectionType) => {
     return reflections.filter(r => r.type === type);

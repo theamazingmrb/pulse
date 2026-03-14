@@ -13,7 +13,7 @@ export async function uploadImage(
   const fileExt = file.name.split(".").pop();
   const fileName = `${userId}/${Date.now()}.${fileExt}`;
   
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from(bucket)
     .upload(fileName, file, {
       cacheControl: "3600",

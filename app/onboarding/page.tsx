@@ -46,7 +46,7 @@ export default function OnboardingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold mb-4">You're All Set!</h1>
+            <h1 className="text-3xl font-bold mb-4">You&apos;re All Set!</h1>
             <p className="text-xl text-muted-foreground mb-8">
               Welcome to Pulse. Your productivity journey starts now.
             </p>
