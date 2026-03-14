@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Plus, Folder, MoreHorizontal, Edit, Trash2, Archive, Clock } from "lucide-react";
@@ -34,7 +34,7 @@ const STATUS_CONFIG: Record<ProjectStatus, { label: string; color: string; textC
   on_hold: { label: "On Hold", color: "bg-yellow-500/10", textColor: "text-yellow-600" },
 };
 
-export default function ProjectsPage() {
+function ProjectsPage() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -286,5 +286,13 @@ export default function ProjectsPage() {
         </Dialog>
       </div>
     </AuthGuard>
+  );
+}
+
+export default function ProjectsPageWrapper() {
+  return (
+    <Suspense>
+      <ProjectsPage />
+    </Suspense>
   );
 }
