@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Journal } from "@/types";
 import { cn, formatDate, formatTime, SESSION_EMOJI } from "@/lib/utils";
-import { Music, Link2 } from "lucide-react";
+import { Music, Link2, ImageIcon } from "lucide-react";
 
 export default function JournalCard({ journal }: { journal: Journal }) {
   return (
@@ -37,6 +37,12 @@ export default function JournalCard({ journal }: { journal: Journal }) {
               )}
               <Music size={11} />
               <span className="truncate max-w-[140px]">{journal.spotify_track_name}</span>
+            </div>
+          )}
+          {journal.image_urls && journal.image_urls.length > 0 && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground rounded-full border border-border bg-secondary px-2.5 py-1">
+              <ImageIcon size={11} />
+              <span>{journal.image_urls.length}</span>
             </div>
           )}
           {journal.tasks && journal.tasks.length > 0 && (

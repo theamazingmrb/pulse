@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatTime, SESSION_EMOJI, PROJECT_COLORS, STATUS_COLORS, cn } from "@/lib/utils";
-import { Music, ExternalLink, ArrowLeft, Link2 } from "lucide-react";
+import { Music, ExternalLink, ArrowLeft, Link2, ImageIcon } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -50,6 +50,28 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
       <div className="rounded-xl border border-border bg-card p-6 mb-5">
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{journal.content}</p>
       </div>
+
+      {/* Images */}
+      {journal.image_urls && journal.image_urls.length > 0 && (
+        <div className="mb-5">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <ImageIcon size={11} /> Photos
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {journal.image_urls.map((url: string) => (
+              <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                <Image
+                  src={url}
+                  alt="Journal photo"
+                  width={300}
+                  height={200}
+                  className="w-full aspect-square object-cover rounded-xl border border-border hover:opacity-90 transition-opacity"
+                />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Spotify track */}
       {journal.spotify_track_name && (

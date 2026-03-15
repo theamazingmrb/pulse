@@ -101,6 +101,7 @@ export interface Journal {
   spotify_album_art: string | null;
   spotify_preview_url: string | null;
   spotify_url: string | null;
+  image_urls?: string[] | null;
   tasks?: Task[];
 }
 

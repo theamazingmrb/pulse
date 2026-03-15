@@ -20,7 +20,7 @@ const FEATURES = [
   {
     emoji: "📖",
     title: "Contextual Journal",
-    description: "Write freely. Attach the song you're listening to and link entries to tasks.",
+    description: "Write freely. Attach photos, the song you're listening to, and link entries to tasks.",
   },
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus, Folder, MoreHorizontal, Edit, Trash2, Archive, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,9 +37,11 @@ const STATUS_CONFIG: Record<ProjectStatus, { label: string; color: string; textC
 function ProjectsPage() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const fromQuickStart = searchParams.get("create") === "true";
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(searchParams.get("create") === "true");
+  const [showForm, setShowForm] = useState(fromQuickStart);
   const [editingProject, setEditingProject] = useState<Project | undefined>();
 
   const loadProjects = useCallback(async () => {
@@ -74,7 +76,12 @@ function ProjectsPage() {
     const success = await createProject(projectData);
     if (success) {
       setShowForm(false);
-      loadProjects();
+      if (fromQuickStart) {
+        // Return to dashboard so the QuickStartGuide advances to the next step
+        router.push("/dashboard");
+      } else {
+        loadProjects();
+      }
     }
   };
 
