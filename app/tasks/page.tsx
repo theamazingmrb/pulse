@@ -190,14 +190,15 @@ export default function TasksPage() {
 
                   {/* Title and meta */}
                   <div className="flex-1 min-w-0">
-                    <span
+                    <Link
+                      href={`/tasks/${task.id}`}
                       className={cn(
-                        "text-sm block truncate",
+                        "text-sm block truncate hover:underline hover:text-primary transition-colors",
                         task.status === "done" && "line-through text-muted-foreground"
                       )}
                     >
                       {task.title}
-                    </span>
+                    </Link>
                     <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
                       {task.scheduling_mode === "auto" && (
                         <span className="flex items-center gap-1">
@@ -261,7 +262,7 @@ export default function TasksPage() {
                     >
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
-                    <Link href={`/journal/new`} title="Journal about this task">
+                    <Link href={`/journal/new?task_id=${task.id}`} title="Journal about this task">
                       <Button variant="ghost" size="icon" className="h-7 w-7">
                         <BookOpen size={13} />
                       </Button>

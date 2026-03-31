@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star } from "lucide-react";
+import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSpotify } from "@/lib/spotify-context";
 import { useAuth } from "@/lib/auth-context";
@@ -13,6 +13,7 @@ import Image from "next/image";
 const links = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/checkin", label: "Check-in", icon: Compass },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/warmap", label: "WarMap", icon: Map },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/journal", label: "Journal", icon: BookOpen },

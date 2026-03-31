@@ -38,8 +38,15 @@ export default function NewJournalPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const preselectedTaskId = new URLSearchParams(window.location.search).get("task_id");
     supabase.from("tasks").select("*").neq("status", "done").order("created_at", { ascending: false })
-      .then(({ data }) => setTasks(data ?? []));
+      .then(({ data }) => {
+        setTasks(data ?? []);
+        if (preselectedTaskId && data?.some((t) => t.id === preselectedTaskId)) {
+          setSelectedTasks([preselectedTaskId]);
+          setShowTasks(true);
+        }
+      });
   }, []);
 
   async function handleImageFiles(files: FileList | null) {

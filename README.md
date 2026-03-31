@@ -20,6 +20,8 @@ Most productivity apps optimize for volume — more tasks, more tracking, more n
 
 - **Smart Task Management** — Tasks support four priority tiers (Hot → Cold), manual or auto-scheduling modes, duration estimates, and organization by user-created projects.
 
+- **Plan My Day** — One-click intelligent scheduling that pushes overdue tasks forward and fills your day with auto-mode tasks using a 4-factor scoring algorithm (deadline urgency, time-of-day energy, priority match, fragmentation prevention).
+
 - **Reflective Journaling** — Session-based entries with mood tracking. Link journal entries to specific tasks to build a narrative around your work.
 
 - **Daily / Weekly / Monthly Reflections** — Structured guided prompts for each cadence. Tracks streaks, shows smart time-based reminders on the dashboard (dismissable), and supports keyword search across all entries.
@@ -63,7 +65,7 @@ Most productivity apps optimize for volume — more tasks, more tracking, more n
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16 (App Router, Server Components) |
+| Framework | Next.js 16 (App Router, Client Components) |
 | Language | TypeScript |
 | Database | Supabase (PostgreSQL) |
 | Auth | Supabase Auth with Row Level Security |
@@ -91,7 +93,11 @@ Eleven tables with Row Level Security ensuring complete data isolation between u
 
 ### Notable Implementation Details
 
-- **Auto-scheduling algorithm** scores time slots based on task priority, deadline proximity, and estimated duration to suggest optimal scheduling
+- **Auto-scheduling algorithm** scores time slots across a 7-day window using four weighted factors:
+  - *Deadline Urgency (40%)* — slots are scored based on how well they position a task relative to its due date, with priority-specific urgency windows
+  - *Time of Day (25%)* — energy-aware scoring peaks at 9–11 AM and 4 PM, based on research-backed productivity patterns
+  - *Priority Match (20%)* — hot tasks are routed to premium morning slots; cold tasks are pushed to off-peak times to preserve them
+  - *Fragmentation Prevention (15%)* — prefers slots that either tightly fit the task or leave room for another full task, avoiding awkward gaps
 - **Spotify OAuth flow** with token refresh handling and playlist management (create, add tracks, sync)
 - **Context-based state management** for auth, sidebar, and Spotify player state
 - **Optimistic UI updates** for task status changes

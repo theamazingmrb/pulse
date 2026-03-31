@@ -60,6 +60,7 @@ export interface Task {
   start_time: string | null;
   end_time: string | null;
   locked: boolean;
+  google_event_id?: string | null;
 }
 
 export interface Profile {

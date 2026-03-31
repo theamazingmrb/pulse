@@ -109,7 +109,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
             </p>
             <div className="flex flex-col gap-2">
               {tasks.map((t: { id: string; title: string; status: string; project: string | null }) => (
-                <div key={t.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm">
+                <Link key={t.id} href={`/tasks/${t.id}`} className="flex items-center gap-3 rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm hover:border-primary/40 transition-colors">
                   <span className="flex-1 font-medium truncate">{t.title}</span>
                   {t.project && (
                     <span className={cn("text-xs px-2 py-0.5 rounded-full border", PROJECT_COLORS[t.project] ?? "bg-secondary border-border text-muted-foreground")}>
@@ -119,7 +119,7 @@ export default async function JournalEntryPage({ params }: { params: Promise<{ i
                   <span className={cn("text-xs px-2 py-0.5 rounded-full border capitalize", STATUS_COLORS[t.status])}>
                     {t.status}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           </CardContent>

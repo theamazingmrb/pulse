@@ -34,54 +34,65 @@ export function initiateSpotifyAuth(): void {
   const redirectUri = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI;
   const scopes = [
     'user-read-private',
-    'user-read-email', 
+    'user-read-email',
     'streaming',
     'user-read-playback-state',
     'user-modify-playback-state',
     'user-read-currently-playing',
-    // Playlist management permissions
     'playlist-modify-public',
-    'playlist-modify-private', 
+    'playlist-modify-private',
     'playlist-read-private'
   ].join(' ');
-  
+
+  // Generate a cryptographically random state and store it for CSRF validation
+  const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  sessionStorage.setItem('spotify_oauth_state', state);
+
   const authUrl = new URL('https://accounts.spotify.com/authorize');
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('client_id', clientId!);
   authUrl.searchParams.set('scope', scopes);
   authUrl.searchParams.set('redirect_uri', redirectUri!);
-  authUrl.searchParams.set('state', Math.random().toString(36).substring(7));
-  
+  authUrl.searchParams.set('state', state);
+
   window.location.href = authUrl.toString();
 }
 
-// Handle OAuth callback from URL params
-export function handleSpotifyCallback(): SpotifyUser | null {
+// Handle OAuth callback — tokens are delivered via httpOnly cookie, not URL params
+export async function handleSpotifyCallback(): Promise<SpotifyUser | null> {
   if (typeof window === 'undefined') return null;
-  
+
   const urlParams = new URLSearchParams(window.location.search);
-  const accessToken = urlParams.get('access_token');
-  const refreshToken = urlParams.get('refresh_token');
-  const userId = urlParams.get('user_id');
-  const userName = urlParams.get('user_name');
-  
-  if (accessToken && refreshToken && userId && userName) {
-    const user: SpotifyUser = {
-      id: userId,
-      name: userName,
-      accessToken,
-      refreshToken
-    };
-    
-    setSpotifyUser(user);
-    
-    // Clean up URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-    
-    return user;
+  if (urlParams.get('spotify_connected') !== 'true') return null;
+
+  // Clean up URL immediately
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  // Fetch tokens from the server (reads + clears the httpOnly cookie)
+  const res = await fetch('/api/spotify/session');
+  if (!res.ok) return null;
+
+  const data = await res.json();
+
+  // Validate state to prevent CSRF
+  const expectedState = sessionStorage.getItem('spotify_oauth_state');
+  sessionStorage.removeItem('spotify_oauth_state');
+  if (!expectedState || data.state !== expectedState) {
+    console.error('Spotify OAuth state mismatch — possible CSRF attack');
+    return null;
   }
-  
-  return null;
+
+  const user: SpotifyUser = {
+    id: data.user_id,
+    name: data.user_name,
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+  };
+
+  setSpotifyUser(user);
+  return user;
 }
 
 // Token cache — server-side module-level (resets on cold start, that's fine)

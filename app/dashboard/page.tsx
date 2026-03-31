@@ -12,16 +12,36 @@ import { useEffect, useState } from "react";
 import AuthGuard from "@/components/auth-guard";
 import SpotifyConnectBanner from "@/components/spotify-connect-banner";
 import ReflectionReminderBanner from "@/components/reflection-reminder-banner";
+import GoogleCalendarConnect from "@/components/google-calendar-connect";
 import QuickStartGuide from "@/components/dashboard/QuickStartGuide";
+import TodaySchedule from "@/components/dashboard/TodaySchedule";
+import { getScheduledTasksForDay, rescheduleOverdueTasks, updateTask } from "@/lib/tasks";
+import { SchedulingService } from "@/lib/scheduling";
+import {
+  isGoogleConnected,
+  handleGoogleCallback,
+  getCalendarBusyBlocks,
+  syncTaskToCalendar,
+} from "@/lib/google-calendar";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [journals, setJournals] = useState<Journal[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [scheduledTasks, setScheduledTasks] = useState<Task[]>([]);
+  const [isPlanning, setIsPlanning] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [hasProjects, setHasProjects] = useState(false);
   const [hasReflections, setHasReflections] = useState(false);
+
+  useEffect(() => {
+    setGoogleConnected(isGoogleConnected());
+    handleGoogleCallback().then((connected) => {
+      if (connected) setGoogleConnected(true);
+    });
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -37,6 +57,7 @@ export default function DashboardPage() {
       { data: tasksData },
       { data: projectsData },
       { data: reflectionsData },
+      scheduledForToday,
     ] = await Promise.all([
       supabase
         .from("checkins")
@@ -47,7 +68,7 @@ export default function DashboardPage() {
         .limit(3),
       supabase
         .from("journals")
-        .select("*, journal_tasks(task_id, tasks(id, title, status, project))")
+        .select("*, journal_tasks(task_id, tasks(id, title, status, project_id))")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(4),
@@ -68,14 +89,71 @@ export default function DashboardPage() {
         .select("id")
         .eq("user_id", userId)
         .limit(1),
+      getScheduledTasksForDay(userId, new Date()),
     ]);
 
     setCheckins(checkinsData || []);
     setJournals(journalsData || []);
     setTasks(tasksData || []);
+    setScheduledTasks(scheduledForToday);
     setHasProjects((projectsData?.length || 0) > 0);
     setHasReflections((reflectionsData?.length || 0) > 0);
     setDataLoading(false);
+  }
+
+  async function planMyDay() {
+    if (!user) return;
+    setIsPlanning(true);
+    try {
+      await rescheduleOverdueTasks(user.id);
+
+      const { data: allActiveData } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "active");
+
+      const allActive: Task[] = allActiveData || [];
+      const autoTasksWithoutTimes = allActive.filter(
+        (t) => t.scheduling_mode === "auto" && !t.start_time
+      );
+
+      // Pull GCal events as locked busy-blocks so the scheduler avoids those slots
+      const gcalBusyBlocks = googleConnected ? await getCalendarBusyBlocks(new Date()) : [];
+
+      if (autoTasksWithoutTimes.length > 0 || gcalBusyBlocks.length > 0) {
+        const rescheduled = await SchedulingService.rescheduleTasks([
+          ...autoTasksWithoutTimes,
+          ...gcalBusyBlocks,
+        ]);
+
+        // Only persist real tasks (not the gcal- busy-block placeholders)
+        const realTasks = rescheduled.filter((t) => !t.id.startsWith("gcal-"));
+
+        await Promise.all(
+          realTasks
+            .filter((t) => t.start_time && t.end_time)
+            .map(async (t) => {
+              const saved = await updateTask(t.id, {
+                start_time: t.start_time,
+                end_time: t.end_time,
+              });
+
+              if (saved && googleConnected) {
+                const googleEventId = await syncTaskToCalendar(saved);
+                if (googleEventId && googleEventId !== saved.google_event_id) {
+                  await updateTask(saved.id, { google_event_id: googleEventId });
+                }
+              }
+            })
+        );
+      }
+
+      const refreshed = await getScheduledTasksForDay(user.id, new Date());
+      setScheduledTasks(refreshed);
+    } finally {
+      setIsPlanning(false);
+    }
   }
 
   const latestCheckin = checkins[0];
@@ -105,6 +183,7 @@ export default function DashboardPage() {
           />
 
           <SpotifyConnectBanner />
+          <GoogleCalendarConnect />
           <ReflectionReminderBanner />
 
           {/* Today's priority */}
@@ -168,12 +247,14 @@ export default function DashboardPage() {
                 ) : (
                   <ul className="flex flex-col gap-2">
                     {tasks.map((t) => (
-                      <li key={t.id} className="flex items-center gap-2 text-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                        <span className="truncate">{t.title}</span>
-                        {t.project_id && (
-                          <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">Project</span>
-                        )}
+                      <li key={t.id}>
+                        <Link href={`/tasks/${t.id}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors group">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                          <span className="truncate group-hover:underline">{t.title}</span>
+                          {t.project_id && (
+                            <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">Project</span>
+                          )}
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -207,6 +288,16 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          <TodaySchedule
+            scheduledTasks={scheduledTasks}
+            unscheduledAutoTasks={tasks.filter(
+              (t) => t.scheduling_mode === "auto" && !t.start_time
+            )}
+            onPlanMyDay={planMyDay}
+            isPlanning={isPlanning}
+            googleConnected={googleConnected}
+          />
 
           {/* Recent journals */}
           <div className="mt-6">

@@ -13,6 +13,7 @@ import {
   getTasksByStatus,
   getTasksByPriority,
   getScheduledTasksForDay,
+  rescheduleOverdueTasks,
 } from "@/lib/tasks";
 
 // ── Supabase mock ─────────────────────────────────────────────────────────────
@@ -406,6 +407,80 @@ describe("getTasksByPriority", () => {
     await getTasksByPriority("u1", 1);
 
     expect(chain.eq).toHaveBeenCalledWith("priority_level", 1);
+  });
+});
+
+// ── rescheduleOverdueTasks ────────────────────────────────────────────────────
+
+describe("rescheduleOverdueTasks", () => {
+  function makeOverdueChain(tasks: unknown[]) {
+    // getTasks uses two chained .order() calls
+    const chain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+    };
+    let orderCount = 0;
+    chain.order = vi.fn().mockImplementation(() => {
+      orderCount++;
+      if (orderCount >= 2) return Promise.resolve({ data: tasks, error: null });
+      return chain;
+    });
+    return chain;
+  }
+
+  it("returns empty array when there are no overdue tasks", async () => {
+    // All tasks have end_time in the future
+    const futureTask = {
+      ...MOCK_TASK,
+      end_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      status: "active",
+      locked: false,
+      projects: null,
+    };
+    mockFrom.mockReturnValueOnce(makeOverdueChain([futureTask]));
+
+    const result = await rescheduleOverdueTasks("u1");
+
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array when there are no tasks at all", async () => {
+    mockFrom.mockReturnValueOnce(makeOverdueChain([]));
+
+    const result = await rescheduleOverdueTasks("u1");
+
+    expect(result).toEqual([]);
+  });
+
+  it("skips locked overdue tasks", async () => {
+    const lockedOverdue = {
+      ...MOCK_TASK,
+      end_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1hr ago
+      status: "active",
+      locked: true,
+      projects: null,
+    };
+    mockFrom.mockReturnValueOnce(makeOverdueChain([lockedOverdue]));
+
+    const result = await rescheduleOverdueTasks("u1");
+
+    expect(result).toEqual([]);
+  });
+
+  it("skips done tasks even if they are overdue", async () => {
+    const doneOverdue = {
+      ...MOCK_TASK,
+      end_time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      status: "done",
+      locked: false,
+      projects: null,
+    };
+    mockFrom.mockReturnValueOnce(makeOverdueChain([doneOverdue]));
+
+    const result = await rescheduleOverdueTasks("u1");
+
+    expect(result).toEqual([]);
   });
 });
 

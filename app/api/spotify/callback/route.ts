@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const code = searchParams.get("code");
   const error = searchParams.get("error");
+  const state = searchParams.get("state");
 
   if (error) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}?error=${error}`);
+    return NextResponse.redirect(`${BASE_URL}?error=${error}`);
   }
 
   if (!code) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}?error=no_code`);
+    return NextResponse.redirect(`${BASE_URL}?error=no_code`);
+  }
+
+  // State is validated client-side (sessionStorage) since the server has no session context here.
+  // We pass it through so the client can verify it came back unmodified.
+  if (!state) {
+    return NextResponse.redirect(`${BASE_URL}?error=missing_state`);
   }
 
   try {
-    // Exchange authorization code for access token
     const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
@@ -34,11 +42,8 @@ export async function GET(req: NextRequest) {
 
     const tokenData = await tokenResponse.json();
 
-    // Get user profile
     const profileResponse = await fetch("https://api.spotify.com/v1/me", {
-      headers: {
-        Authorization: `Bearer ${tokenData.access_token}`,
-      },
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
 
     if (!profileResponse.ok) {
@@ -47,16 +52,27 @@ export async function GET(req: NextRequest) {
 
     const profile = await profileResponse.json();
 
-    // Redirect back to app with tokens and user info
-    const redirectUrl = new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
-    redirectUrl.searchParams.set('access_token', tokenData.access_token);
-    redirectUrl.searchParams.set('refresh_token', tokenData.refresh_token);
-    redirectUrl.searchParams.set('user_id', profile.id);
-    redirectUrl.searchParams.set('user_name', profile.display_name);
+    // Store tokens in a short-lived httpOnly cookie — never exposed in URL
+    const cookieValue = JSON.stringify({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      user_id: profile.id,
+      user_name: profile.display_name,
+      state,
+    });
 
-    return NextResponse.redirect(redirectUrl.toString());
+    const response = NextResponse.redirect(`${BASE_URL}/?spotify_connected=true`);
+    response.cookies.set("spotify_pending", cookieValue, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60, // 1 minute — client picks it up immediately
+      path: "/",
+    });
+
+    return response;
   } catch (err) {
     console.error("Spotify callback error:", err);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}?error=callback_failed`);
+    return NextResponse.redirect(`${BASE_URL}?error=callback_failed`);
   }
 }

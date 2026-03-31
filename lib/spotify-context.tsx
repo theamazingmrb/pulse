@@ -31,12 +31,14 @@ export function SpotifyProvider({ children }: { children: React.ReactNode }) {
   const playerRef = useRef<SpotifyPlayer | null>(null);
 
   useEffect(() => {
-    const callbackUser = handleSpotifyCallback();
-    const activeUser = callbackUser ?? getSpotifyUser();
-    if (activeUser) {
-      setUser(activeUser);
-      initPlayer(activeUser);
-    }
+    (async () => {
+      const callbackUser = await handleSpotifyCallback();
+      const activeUser = callbackUser ?? getSpotifyUser();
+      if (activeUser) {
+        setUser(activeUser);
+        initPlayer(activeUser);
+      }
+    })();
   }, []);
 
   const initPlayer = async (spotifyUser: SpotifyUser) => {
