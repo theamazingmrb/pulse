@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import AuthGuard from "@/components/auth-guard";
 import { Task } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { PRIORITY_CONFIG } from "@/lib/tasks";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getCalendarBusyBlocks, isGoogleConnected } from "@/lib/google-calendar";
+import { ChevronLeft, ChevronRight, CalendarOff } from "lucide-react";
 import Link from "next/link";
 import { cn, formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -62,9 +63,11 @@ export default function CalendarPage() {
   const { user } = useAuth();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [googleEvents, setGoogleEvents] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDayIdx, setActiveDayIdx] = useState(() => new Date().getDay());
   const scrollRef = useRef<HTMLDivElement>(null);
+  const googleConnected = isGoogleConnected();
 
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
   const today = useMemo(() => new Date(), []);
@@ -73,21 +76,12 @@ export default function CalendarPage() {
   const isCurrentWeek = isSameDay(weekStart, startOfWeek(today));
   const showNowLine = isCurrentWeek && nowPx >= 0 && nowPx <= totalHeight;
 
-  useEffect(() => {
-    if (user) loadTasks(user.id);
-  }, [user, weekStart, loadTasks]);
-
-  useEffect(() => {
-    if (!loading && scrollRef.current) {
-      scrollRef.current.scrollTop = Math.max(0, nowPx - 120);
-    }
-  }, [loading, nowPx]);
-
-  async function loadTasks(userId: string) {
+  const loadAllEvents = useCallback(async (userId: string) => {
     setLoading(true);
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 7);
 
+    // Fetch tasks from Supabase
     const [{ data: scheduled }, { data: dueTasks }] = await Promise.all([
       supabase
         .from("tasks")
@@ -108,8 +102,33 @@ export default function CalendarPage() {
     const merged = [...(scheduled || []), ...(dueTasks || [])];
     const unique = Array.from(new Map(merged.map((t) => [t.id, t])).values());
     setTasks(unique.map((t) => ({ ...t, project: t.projects || null })));
+
+    // Fetch Google Calendar events for each day in the week
+    if (isGoogleConnected()) {
+      const allGCalEvents: Task[] = [];
+      for (const day of getWeekDays(weekStart)) {
+        try {
+          const events = await getCalendarBusyBlocks(day);
+          allGCalEvents.push(...events);
+        } catch (err) {
+          console.error("Failed to fetch Google Calendar events for", day, err);
+        }
+      }
+      setGoogleEvents(allGCalEvents);
+    }
+
     setLoading(false);
-  }
+  }, [weekStart]);
+
+  useEffect(() => {
+    if (user) loadAllEvents(user.id);
+  }, [user, loadAllEvents]);
+
+  useEffect(() => {
+    if (!loading && scrollRef.current) {
+      scrollRef.current.scrollTop = Math.max(0, nowPx - 120);
+    }
+  }, [loading, nowPx]);
 
   function prevWeek() {
     const d = new Date(weekStart);
@@ -129,9 +148,15 @@ export default function CalendarPage() {
   }
 
   function scheduledForDay(day: Date): Task[] {
-    return tasks
+    const dayTasks = tasks
       .filter((t) => t.start_time && isSameDay(new Date(t.start_time), day))
       .sort((a, b) => new Date(a.start_time!).getTime() - new Date(b.start_time!).getTime());
+
+    const dayGCal = googleEvents
+      .filter((e) => e.start_time && isSameDay(new Date(e.start_time), day))
+      .sort((a, b) => new Date(a.start_time!).getTime() - new Date(b.start_time!).getTime());
+
+    return [...dayTasks, ...dayGCal];
   }
 
   function dueForDay(day: Date): Task[] {
@@ -191,39 +216,53 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* Scheduled tasks */}
-        {scheduled.map((task) => {
-          const cfg = PRIORITY_CONFIG[task.priority_level as keyof typeof PRIORITY_CONFIG];
-          const top = taskTopPx(task.start_time!);
-          const height = taskHeightPx(task.estimated_duration ?? 30);
-          return (
-            <Link key={task.id} href={`/tasks/${task.id}`}>
-              <div
-                className="absolute inset-x-1 rounded overflow-hidden cursor-pointer hover:brightness-110 transition-all border"
-                style={{
-                  top: `${top}px`,
-                  height: `${height}px`,
-                  backgroundColor: `${cfg?.color}22`,
-                  borderColor: `${cfg?.color}55`,
-                  borderLeftColor: cfg?.color,
-                  borderLeftWidth: "3px",
-                }}
-              >
-                <div className={cn("p-1", isMobile && "p-1.5")}>
-                  <p
-                    className="text-[10px] font-semibold leading-tight truncate"
-                    style={{ color: cfg?.color }}
-                  >
-                    {task.title}
+        {/* Scheduled tasks and Google Calendar events */}
+        {scheduled.map((event) => {
+          const isGCalEvent = event.id.startsWith("gcal-");
+          const top = taskTopPx(event.start_time!);
+          const height = taskHeightPx(event.estimated_duration ?? 30);
+
+          // Google Calendar events get a distinct blue-gray style
+          const eventColor = isGCalEvent ? "#6366f1" : (PRIORITY_CONFIG[event.priority_level as keyof typeof PRIORITY_CONFIG]?.color || "#6b7280");
+
+          const content = (
+            <div
+              className="absolute inset-x-1 rounded overflow-hidden cursor-pointer hover:brightness-110 transition-all border"
+              style={{
+                top: `${top}px`,
+                height: `${height}px`,
+                backgroundColor: `${eventColor}22`,
+                borderColor: `${eventColor}55`,
+                borderLeftColor: eventColor,
+                borderLeftWidth: "3px",
+              }}
+            >
+              <div className={cn("p-1", isMobile && "p-1.5")}>
+                <p
+                  className="text-[10px] font-semibold leading-tight truncate"
+                  style={{ color: eventColor }}
+                >
+                  {isGCalEvent && <span className="mr-1">📅</span>}
+                  {event.title}
+                </p>
+                {height >= 40 && event.start_time && (
+                  <p className="text-[9px] text-muted-foreground leading-tight mt-0.5">
+                    {formatTime(event.start_time)}
+                    {event.end_time && ` – ${formatTime(event.end_time)}`}
                   </p>
-                  {height >= 40 && task.start_time && (
-                    <p className="text-[9px] text-muted-foreground leading-tight mt-0.5">
-                      {formatTime(task.start_time)}
-                      {task.end_time && ` – ${formatTime(task.end_time)}`}
-                    </p>
-                  )}
-                </div>
+                )}
               </div>
+            </div>
+          );
+
+          // Google Calendar events aren't clickable (no task detail page)
+          if (isGCalEvent) {
+            return <div key={event.id}>{content}</div>;
+          }
+
+          return (
+            <Link key={event.id} href={`/tasks/${event.id}`}>
+              {content}
             </Link>
           );
         })}
@@ -262,6 +301,14 @@ export default function CalendarPage() {
             </Button>
           )}
         </div>
+
+        {/* Google Calendar connection status */}
+        {!googleConnected && (
+          <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-muted/50 border border-border text-xs text-muted-foreground">
+            <CalendarOff size={14} />
+            <span>Google Calendar not connected</span>
+          </div>
+        )}
 
         {/* Mobile: day tab strip */}
         <div className="md:hidden flex gap-1 overflow-x-auto pb-2 mb-2 no-scrollbar">

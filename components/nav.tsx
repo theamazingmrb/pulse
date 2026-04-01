@@ -42,8 +42,7 @@ export default function Nav() {
         <div className="mb-8 px-3 flex items-center justify-between">
           {!collapsed && (
             <div>
-              <span className="text-primary font-bold text-base tracking-tight">Priority</span>
-              <span className="text-foreground font-bold text-base tracking-tight"> Compass</span>
+              <span className="text-primary font-bold text-base tracking-tight">Pulse</span>
             </div>
           )}
           <button
