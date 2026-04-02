@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Eye, EyeOff, Mail, Lock, Chrome } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SignInPage() {
@@ -181,6 +181,32 @@ export default function SignInPage() {
                 </>
               ) : (
                 "Sign In"
+              )}
+            </Button>
+          </form>
+          
+          <div className="space-y-2 text-center">
+            <button
+              type="button"
+              onClick={handleResetPassword}
+              className="text-sm text-muted-foreground hover:text-primary hover:underline"
+            >
+              Forgot your password?
+            </button>
+            
+            <div className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-primary hover:underline">
+                Sign up
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+           "Sign In"
               )}
             </Button>
           </form>
