@@ -275,7 +275,7 @@ export default function CalendarPage() {
     return `${MONTH_SHORT[s.getMonth()]} ${s.getDate()} – ${MONTH_SHORT[e.getMonth()]} ${e.getDate()}, ${e.getFullYear()}`;
   })();
 
-  function renderDayColumn(day: Date, isMobile = false, showTimeLabels = false) {
+  function renderDayColumn(day: Date, isMobile = false, _showTimeLabels = false) {
     const isToday = isSameDay(day, today);
     const scheduled = scheduledForDay(day);
     const due = dueForDay(day);

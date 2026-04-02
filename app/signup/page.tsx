@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Eye, EyeOff, Mail, Lock, User, Chrome } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SignUpPage() {
