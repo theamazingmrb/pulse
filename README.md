@@ -1,4 +1,4 @@
-# Pulse
+# Priority Compass (PC)
 
 Daily check-ins, structured reflections, priority tasks, and journaling — with optional Spotify integration to soundtrack your workflow.
 
@@ -12,7 +12,7 @@ Daily check-ins, structured reflections, priority tasks, and journaling — with
 
 ## Overview
 
-Most productivity apps optimize for volume — more tasks, more tracking, more noise. Pulse is built around a different idea: **clarity drives productivity**. It's a personal operating system for focused people who want to set daily intentions, track what matters, and reflect with structure — without the overhead of enterprise tooling.
+Most productivity apps optimize for volume — more tasks, more tracking, more noise. Priority Compass is built around a different idea: **clarity drives productivity**. It's a personal operating system for focused people who want to set daily intentions, track what matters, and reflect with structure — without the overhead of enterprise tooling.
 
 ### Key Features
 
@@ -21,6 +21,8 @@ Most productivity apps optimize for volume — more tasks, more tracking, more n
 - **Smart Task Management** — Tasks support four priority tiers (Hot → Cold), manual or auto-scheduling modes, duration estimates, and organization by user-created projects.
 
 - **Plan My Day** — One-click intelligent scheduling that pushes overdue tasks forward and fills your day with auto-mode tasks using a 4-factor scoring algorithm (deadline urgency, time-of-day energy, priority match, fragmentation prevention).
+
+- **Google Calendar Integration** — Two-way sync with Google Calendar. View existing events as busy blocks and automatically sync scheduled tasks back to your calendar.
 
 - **Reflective Journaling** — Session-based entries with mood tracking. Link journal entries to specific tasks to build a narrative around your work.
 
@@ -46,6 +48,7 @@ Most productivity apps optimize for volume — more tasks, more tracking, more n
 │   ├── warmap/             # Year planning (categories + goals)
 │   ├── projects/           # Project cards
 │   ├── playlist/           # Spotify playlist view
+│   ├── calendar/           # Google Calendar view
 │   └── tasks/              # Task management
 ├── components/             # React components
 │   ├── ui/                 # shadcn/ui primitives
@@ -53,6 +56,7 @@ Most productivity apps optimize for volume — more tasks, more tracking, more n
 ├── lib/                    # Services and utilities
 │   ├── auth-context.tsx    # Auth state management
 │   ├── spotify-context.tsx # Spotify player state
+│   ├── google-calendar.ts  # Google Calendar sync
 │   ├── scheduling.ts       # Auto-scheduling algorithm
 │   ├── tasks.ts            # Task service layer
 │   ├── warmap.ts           # WarMap service layer
@@ -71,7 +75,7 @@ Most productivity apps optimize for volume — more tasks, more tracking, more n
 | Auth | Supabase Auth with Row Level Security |
 | Styling | Tailwind CSS + shadcn/ui + Radix primitives |
 | Animation | Framer Motion |
-| External API | Spotify Web API + Web Playback SDK |
+| External APIs | Spotify Web API + Web Playback SDK, Google Calendar API |
 
 ### Database Design
 
@@ -98,6 +102,7 @@ Eleven tables with Row Level Security ensuring complete data isolation between u
   - *Time of Day (25%)* — energy-aware scoring peaks at 9–11 AM and 4 PM, based on research-backed productivity patterns
   - *Priority Match (20%)* — hot tasks are routed to premium morning slots; cold tasks are pushed to off-peak times to preserve them
   - *Fragmentation Prevention (15%)* — prefers slots that either tightly fit the task or leave room for another full task, avoiding awkward gaps
+- **Two-way Google Calendar sync** — scheduled tasks automatically create/update Google Calendar events
 - **Spotify OAuth flow** with token refresh handling and playlist management (create, add tracks, sync)
 - **Context-based state management** for auth, sidebar, and Spotify player state
 - **Optimistic UI updates** for task status changes
@@ -110,6 +115,7 @@ Eleven tables with Row Level Security ensuring complete data isolation between u
 - pnpm (recommended) or npm
 - Supabase account (free tier works)
 - Spotify Developer account (optional, for music features)
+- Google Cloud project (optional, for Calendar sync)
 
 ### Installation
 
@@ -121,7 +127,7 @@ pnpm install
 
 # Set up environment
 cp .env.example .env
-# Add your Supabase and Spotify credentials
+# Add your Supabase, Spotify, and Google credentials
 
 # Run locally
 pnpm dev
@@ -136,6 +142,8 @@ pnpm dev
 | `SPOTIFY_CLIENT_ID` | No | Spotify app Client ID |
 | `SPOTIFY_CLIENT_SECRET` | No | Spotify app Client Secret |
 | `SPOTIFY_REDIRECT_URI` | No | OAuth callback URL |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | No | Google OAuth Client ID |
+| `NEXT_PUBLIC_GOOGLE_REDIRECT_URI` | No | Google OAuth callback URL |
 
 ### Database Setup
 
