@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import AuthGuard from "@/components/auth-guard";
 import { Task } from "@/types";
 import { supabase } from "@/lib/supabase";
-import { PRIORITY_CONFIG, createTask } from "@/lib/tasks";
+import { PRIORITY_CONFIG } from "@/lib/tasks";
 import { getCalendarBusyBlocks, isGoogleConnected } from "@/lib/google-calendar";
 import { ChevronLeft, ChevronRight, CalendarOff, Plus, X } from "lucide-react";
 import Link from "next/link";
