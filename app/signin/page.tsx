@@ -206,29 +206,3 @@ export default function SignInPage() {
     </div>
   );
 }
-           "Sign In"
-              )}
-            </Button>
-          </form>
-          
-          <div className="space-y-2 text-center">
-            <button
-              type="button"
-              onClick={handleResetPassword}
-              className="text-sm text-muted-foreground hover:text-primary hover:underline"
-            >
-              Forgot your password?
-            </button>
-            
-            <div className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
