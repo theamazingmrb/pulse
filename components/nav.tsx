@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays } from "lucide-react";
+import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSpotify } from "@/lib/spotify-context";
 import { useAuth } from "@/lib/auth-context";
@@ -21,15 +22,22 @@ const links = [
   { href: "/playlist", label: "Playlist", icon: Music },
 ];
 
+// Primary nav items shown on mobile (top 5)
+const mobilePrimaryLinks = links.slice(0, 5);
+const mobileOverflowLinks = links.slice(5);
+
 export default function Nav() {
   const path = usePathname();
   const { currentTrack, isPlaying, playerReady, playTrack, pause } = useSpotify();
   const { user, signOut } = useAuth();
   const { collapsed, setCollapsed } = useSidebar();
+  const [showOverflow, setShowOverflow] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const isActiveOverflowItem = mobileOverflowLinks.some(link => link.href === path);
 
   return (
     <>
@@ -119,23 +127,66 @@ export default function Nav() {
       </aside>
 
       {/* ── Mobile bottom tab bar ── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card flex items-stretch">
-        {links.map(({ href, label, icon: Icon }) => (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card flex items-center px-1 safe-area-inset-bottom">
+        {mobilePrimaryLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
+              "flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors",
               path === href
                 ? "text-primary"
-                : "text-muted-foreground"
+                : "text-muted-foreground active:bg-secondary/50"
             )}
           >
-            <Icon size={20} strokeWidth={path === href ? 2.5 : 1.75} />
-            {label}
+            <Icon size={22} strokeWidth={path === href ? 2.5 : 2} />
+            <span className="text-[11px] font-medium">{label}</span>
           </Link>
         ))}
-      </div>
+        
+        {/* More button */}
+        <button
+          onClick={() => setShowOverflow(!showOverflow)}
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors",
+            showOverflow || isActiveOverflowItem
+              ? "text-primary"
+              : "text-muted-foreground active:bg-secondary/50"
+          )}
+        >
+          {showOverflow ? <X size={22} strokeWidth={2} /> : <MoreHorizontal size={22} strokeWidth={showOverflow || isActiveOverflowItem ? 2.5 : 2} />}
+          <span className="text-[11px] font-medium">{showOverflow ? "Close" : "More"}</span>
+        </button>
+      </nav>
+
+      {/* ── Mobile overflow menu ── */}
+      {showOverflow && (
+        <div className="md:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={() => setShowOverflow(false)}>
+          <div 
+            className="absolute bottom-16 left-0 right-0 bg-card border-t border-border p-4 safe-area-inset-bottom"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="grid grid-cols-3 gap-4">
+              {mobileOverflowLinks.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setShowOverflow(false)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2 p-4 rounded-lg min-h-[80px] transition-colors",
+                    path === href
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-muted-foreground active:bg-secondary"
+                  )}
+                >
+                  <Icon size={28} strokeWidth={path === href ? 2.5 : 2} />
+                  <span className="text-xs font-medium">{label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
