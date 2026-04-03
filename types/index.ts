@@ -169,3 +169,32 @@ export const PROJECT_OPTIONS = [
 ] as const;
 
 export type LegacyProject = (typeof PROJECT_OPTIONS)[number];
+
+// Focus Session types
+export type FocusSessionStatus = "active" | "paused" | "completed" | "abandoned";
+
+export interface FocusSession {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  task_id: string | null;
+  duration: number; // planned duration in minutes
+  started_at: string;
+  completed_at: string | null;
+  status: FocusSessionStatus;
+  spotify_playlist_id: string | null;
+  spotify_playlist_name: string | null;
+  spotify_track_id: string | null;
+  spotify_track_name: string | null;
+  spotify_artist: string | null;
+  journal_id: string | null;
+  notes: string | null;
+  task?: Task | null;
+}
+
+export interface FocusTimerPreset {
+  label: string;
+  minutes: number;
+  description: string;
+}

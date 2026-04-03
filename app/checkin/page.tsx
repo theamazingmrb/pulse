@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import AuthGuard from "@/components/auth-guard";
 import CheckinFlow from "@/components/checkin-flow";
+import { NotificationPrompt } from "@/components/notification-prompt";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 
@@ -28,20 +29,38 @@ function formatLastCheckin(dateStr: string): string {
 function CheckinPageContent() {
   const { user } = useAuth();
   const [lastCheckin, setLastCheckin] = useState<string | null>(null);
+  const [checkinCount, setCheckinCount] = useState(0);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("checkins")
-      .select("created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single()
-      .then(({ data }) => {
-        if (data) setLastCheckin(data.created_at);
-      });
+    
+    // Load last checkin and count
+    Promise.all([
+      supabase
+        .from("checkins")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single(),
+      supabase
+        .from("checkins")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+    ]).then(([lastResult, countResult]) => {
+      if (lastResult.data) setLastCheckin(lastResult.data.created_at);
+      if (countResult.count !== null) setCheckinCount(countResult.count);
+    });
   }, [user]);
+
+  const handleCheckinComplete = () => {
+    // Show notification prompt after first check-in
+    if (checkinCount === 0) {
+      setShowNotificationPrompt(true);
+    }
+    setCheckinCount(prev => prev + 1);
+  };
 
   return (
     <div>
@@ -56,7 +75,13 @@ function CheckinPageContent() {
           </p>
         )}
       </div>
-      <CheckinFlow />
+      <CheckinFlow onComplete={handleCheckinComplete} />
+      
+      {/* Show notification prompt after first check-in */}
+      <NotificationPrompt 
+        showOnFirstCheckin={showNotificationPrompt}
+        onDismiss={() => setShowNotificationPrompt(false)}
+      />
     </div>
   );
 }

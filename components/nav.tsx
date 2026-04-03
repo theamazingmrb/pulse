@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X } from "lucide-react";
+import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X, Timer, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSpotify } from "@/lib/spotify-context";
 import { useAuth } from "@/lib/auth-context";
@@ -14,17 +14,21 @@ import Image from "next/image";
 const links = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/checkin", label: "Check-in", icon: Compass },
+  { href: "/focus", label: "Focus", icon: Timer },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/warmap", label: "WarMap", icon: Map },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/reflections", label: "Reflections", icon: Star },
   { href: "/playlist", label: "Playlist", icon: Music },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 // Primary nav items shown on mobile (top 5)
 const mobilePrimaryLinks = links.slice(0, 5);
-const mobileOverflowLinks = links.slice(5);
+// Settings always at the end of overflow
+const mobileOverflowLinks = links.slice(5, -1); // Exclude settings from grid
+const mobileSettingsLink = links[links.length - 1]; // Settings link
 
 export default function Nav() {
   const path = usePathname();
@@ -183,6 +187,27 @@ export default function Nav() {
                   <span className="text-xs font-medium">{label}</span>
                 </Link>
               ))}
+            </div>
+            {/* Settings link at bottom */}
+            <div className="mt-4 pt-4 border-t border-border">
+              <Link
+                href={mobileSettingsLink.href}
+                onClick={() => setShowOverflow(false)}
+                className={cn(
+                  "flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors",
+                  path === mobileSettingsLink.href
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary/50 text-muted-foreground active:bg-secondary"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <mobileSettingsLink.icon size={20} strokeWidth={path === mobileSettingsLink.href ? 2.5 : 2} />
+                  <span className="text-sm font-medium">{mobileSettingsLink.label}</span>
+                </div>
+                {path === mobileSettingsLink.href && (
+                  <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                )}
+              </Link>
             </div>
           </div>
         </div>

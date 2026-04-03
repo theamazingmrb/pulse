@@ -1,6 +1,8 @@
-# Priority Compass (PC)
+# Priority Compass
 
-Daily check-ins, structured reflections, priority tasks, and journaling — with optional Spotify integration to soundtrack your workflow.
+**Start your day with clarity. End it with insight.**
+
+A personal productivity OS for intentional people who want to set daily priorities, track what matters, and reflect with structure — without the overhead of enterprise tooling.
 
 **[Live Demo →](https://vibe-with-pulse.vercel.app)**
 
@@ -10,72 +12,116 @@ Daily check-ins, structured reflections, priority tasks, and journaling — with
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css)
 
-## Overview
+---
 
-Most productivity apps optimize for volume — more tasks, more tracking, more noise. Priority Compass is built around a different idea: **clarity drives productivity**. It's a personal operating system for focused people who want to set daily intentions, track what matters, and reflect with structure — without the overhead of enterprise tooling.
+## The Problem
 
-### Key Features
+Most productivity apps optimize for volume — more tasks, more tracking, more noise. They turn your life into an endless to-do list that grows faster than you can check things off.
 
-- **Time-Aware Check-ins** — Guided flows that adapt to morning, midday, or evening context. Set your top priority, note potential blockers, and track energy levels throughout the day.
+**Priority Compass is different.** We optimize for clarity.
 
-- **Smart Task Management** — Tasks support four priority tiers (Hot → Cold), manual or auto-scheduling modes, duration estimates, and organization by user-created projects.
+This is for people who:
+- Start their day overwhelmed by options
+- End their day unsure what they actually accomplished
+- Want to build self-awareness through structured reflection
+- Need their calendar and tasks to work *together*, not in silos
 
-- **Plan My Day** — One-click intelligent scheduling that pushes overdue tasks forward and fills your day with auto-mode tasks using a 4-factor scoring algorithm (deadline urgency, time-of-day energy, priority match, fragmentation prevention).
-
-- **Google Calendar Integration** — Two-way sync with Google Calendar. View existing events as busy blocks and automatically sync scheduled tasks back to your calendar.
-
-- **Reflective Journaling** — Session-based entries with mood tracking. Link journal entries to specific tasks to build a narrative around your work.
-
-- **Daily / Weekly / Monthly Reflections** — Structured guided prompts for each cadence. Tracks streaks, shows smart time-based reminders on the dashboard (dismissable), and supports keyword search across all entries.
-
-- **WarMap Year Planning** — Define annual categories and goals. Link tasks directly to WarMap items and review progress during weekly and monthly reflections.
-
-- **Spotify Integration** — Attach songs to journal entries and automatically sync them to a Spotify playlist. Includes in-app playback via the Web Playback SDK.
-
-- **Responsive Design** — Collapsible sidebar navigation on desktop, bottom tab bar on mobile. Dark and light themes.
-
-## Technical Highlights
-
-### Architecture
+## The Core Loop
 
 ```
-├── app/                    # Next.js 16 App Router
-│   ├── api/spotify/        # OAuth + playlist sync endpoints
-│   ├── dashboard/          # Authenticated home
-│   ├── checkin/            # Check-in flow
-│   ├── journal/            # Journal CRUD
-│   ├── reflections/        # Daily/weekly/monthly reflections
-│   ├── warmap/             # Year planning (categories + goals)
-│   ├── projects/           # Project cards
-│   ├── playlist/           # Spotify playlist view
-│   ├── calendar/           # Google Calendar view
-│   └── tasks/              # Task management
-├── components/             # React components
-│   ├── ui/                 # shadcn/ui primitives
-│   └── tasks/              # Task-specific components
-├── lib/                    # Services and utilities
-│   ├── auth-context.tsx    # Auth state management
-│   ├── spotify-context.tsx # Spotify player state
-│   ├── google-calendar.ts  # Google Calendar sync
-│   ├── scheduling.ts       # Auto-scheduling algorithm
-│   ├── tasks.ts            # Task service layer
-│   ├── warmap.ts           # WarMap service layer
-│   └── reflections.ts      # Reflections + streak logic
-└── supabase/
-    └── migrations/         # Database schema + RLS policies
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   MORNING                    DAY                    EVENING     │
+│   ────────                   ────                   ───────     │
+│   Check-in                   Focus                  Reflect      │
+│   · Set top priority         · Work with timer      · What worked? │
+│   · Note blockers            · Log to journal       · What didn't?  │
+│   · Rate energy              · Stay on track        · Tomorrow's focus │
+│                                                                 │
+│   ─────────────────────────────────────────────────────────────│
+│                    WarMap: Year-Level Goals                     │
+│                    Projects: Track Progress                     │
+│                    Calendar: See Your Time                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Stack
+**This loop creates habit.** Morning intention → Focused execution → Evening reflection.
+
+Most apps only handle the middle. Priority Compass completes the loop.
+
+## What Makes This Different
+
+### 1. **Intentional Check-ins**
+Not just "what do I need to do?" — but "what matters most right now?"
+- Time-aware prompts (morning, midday, evening)
+- Energy tracking to find your patterns
+- Quick recalibration when priorities shift
+
+### 2. **Priority Tiers, Not Just Lists**
+- **Hot** — Urgent, do it now
+- **Warm** — Important, do it soon  
+- **Cool** — Can wait a bit
+- **Cold** — Backlog / someday
+
+Tasks get routed to appropriate time slots based on priority. Hot tasks get prime morning hours. Cold tasks fill gaps.
+
+### 3. **Smart Auto-Scheduling**
+The scheduling algorithm doesn't just fill time. It considers:
+- **Deadline urgency** (40%) — When is it due? How critical?
+- **Time of day** (25%) — Energy-based slot selection (9-11 AM peak, 4 PM second peak)
+- **Priority match** (20%) — Hot tasks get premium slots
+- **Fragmentation prevention** (15%) — Avoids awkward gaps
+
+One-click "Plan My Day" takes your auto-mode tasks and schedules them intelligently.
+
+### 4. **Structured Reflection**
+Daily, weekly, and monthly prompts guide self-awareness:
+- Daily: Accomplishments, gratitude, improvements, tomorrow's intention
+- Weekly: Wins, blockers, WarMap progress, next week focus
+- Monthly: Vision check, areas to improve, goals
+
+Streaks gamify consistency without being gimmicky.
+
+### 5. **WarMap: Year-Level Planning**
+Define annual themes and goals. Link tasks to them. Review progress during weekly reflections.
+
+This is the missing layer between "today's tasks" and "life goals."
+
+### 6. **Google Calendar Integration**
+Two-way sync:
+- See your calendar events as busy blocks
+- Scheduled tasks automatically sync to Google Calendar
+- Changes flow both ways
+
+### 7. **Spotify Integration**
+Attach songs to journal entries. Build a soundtrack for your productivity. Optional but surprisingly sticky.
+
+## Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Time-Aware Check-ins** | Morning, midday, evening flows with energy tracking |
+| **Priority-Based Tasks** | 4-tier system with smart scheduling |
+| **Plan My Day** | One-click intelligent scheduling |
+| **Google Calendar Sync** | Two-way integration with busy block awareness |
+| **Journal** | Session-based entries with mood and task linking |
+| **Reflections** | Daily/weekly/monthly with streak tracking |
+| **WarMap** | Annual goal planning and progress tracking |
+| **Projects** | Organize tasks by project with color coding |
+| **Spotify Integration** | Music for your workflow |
+
+## Technical Stack
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16 (App Router, Client Components) |
+| Framework | Next.js 16 (App Router) |
 | Language | TypeScript |
 | Database | Supabase (PostgreSQL) |
 | Auth | Supabase Auth with Row Level Security |
-| Styling | Tailwind CSS + shadcn/ui + Radix primitives |
+| Styling | Tailwind CSS + shadcn/ui |
 | Animation | Framer Motion |
-| External APIs | Spotify Web API + Web Playback SDK, Google Calendar API |
+| External APIs | Spotify, Google Calendar |
 
 ### Database Design
 
@@ -83,29 +129,17 @@ Eleven tables with Row Level Security ensuring complete data isolation between u
 
 | Table | Purpose |
 |-------|---------|
-| `projects` | User-defined project categories with color coding |
-| `tasks` | Tasks with priority levels, scheduling metadata, and project associations |
-| `journals` | Journal entries with mood, session context, and Spotify track metadata |
-| `journal_tasks` | Many-to-many relationship linking journals to tasks |
-| `checkins` | Priority snapshots with energy levels and context notes |
-| `spotify_playlists` | Synced playlist references for the Spotify integration |
-| `warmap_categories` | Annual theme categories for year planning |
-| `warmap_items` | Specific goals within a WarMap category |
-| `task_warmap_items` | Many-to-many linking tasks to WarMap goals |
-| `reflections` | Daily/weekly/monthly structured reflections with JSONB sections |
-| `reflection_streaks` | Per-user streak tracking for each reflection cadence |
-
-### Notable Implementation Details
-
-- **Auto-scheduling algorithm** scores time slots across a 7-day window using four weighted factors:
-  - *Deadline Urgency (40%)* — slots are scored based on how well they position a task relative to its due date, with priority-specific urgency windows
-  - *Time of Day (25%)* — energy-aware scoring peaks at 9–11 AM and 4 PM, based on research-backed productivity patterns
-  - *Priority Match (20%)* — hot tasks are routed to premium morning slots; cold tasks are pushed to off-peak times to preserve them
-  - *Fragmentation Prevention (15%)* — prefers slots that either tightly fit the task or leave room for another full task, avoiding awkward gaps
-- **Two-way Google Calendar sync** — scheduled tasks automatically create/update Google Calendar events
-- **Spotify OAuth flow** with token refresh handling and playlist management (create, add tracks, sync)
-- **Context-based state management** for auth, sidebar, and Spotify player state
-- **Optimistic UI updates** for task status changes
+| `projects` | User-defined project categories |
+| `tasks` | Tasks with priority, scheduling, project links |
+| `journals` | Journal entries with mood and Spotify metadata |
+| `journal_tasks` | Many-to-many journal ↔ task linking |
+| `checkins` | Priority snapshots with energy levels |
+| `spotify_playlists` | Synced playlist references |
+| `warmap_categories` | Annual theme categories |
+| `warmap_items` | Specific goals within categories |
+| `task_warmap_items` | Many-to-many task ↔ goal linking |
+| `reflections` | Daily/weekly/monthly structured reflections |
+| `reflection_streaks` | Per-user streak tracking |
 
 ## Getting Started
 
@@ -154,12 +188,7 @@ supabase start
 supabase db reset  # Applies migrations automatically
 ```
 
-For hosted Supabase, run migrations in order in the SQL Editor:
-1. `supabase/migrations/20240101000000_initial_schema.sql`
-2. `supabase/migrations/20240313000000_add_images.sql`
-3. `supabase/migrations/20240313000001_create_storage_buckets.sql`
-4. `supabase/migrations/20260313000000_warmap.sql`
-5. `supabase/migrations/20260313000001_reflections.sql`
+For hosted Supabase, run migrations in order in the SQL Editor.
 
 ## Deployment
 

@@ -15,6 +15,7 @@ import ReflectionReminderBanner from "@/components/reflection-reminder-banner";
 import GoogleCalendarConnect from "@/components/google-calendar-connect";
 import QuickStartGuide from "@/components/dashboard/QuickStartGuide";
 import TodaySchedule from "@/components/dashboard/TodaySchedule";
+import FocusStats from "@/components/focus-stats";
 import { getScheduledTasksForDay, rescheduleOverdueTasks, updateTask } from "@/lib/tasks";
 import { SchedulingService } from "@/lib/scheduling";
 import {
@@ -185,6 +186,7 @@ export default function DashboardPage() {
           <SpotifyConnectBanner />
           <GoogleCalendarConnect />
           <ReflectionReminderBanner />
+          <FocusStats />
 
           {/* Today's priority */}
           {latestCheckin ? (

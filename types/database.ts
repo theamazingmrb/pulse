@@ -239,6 +239,132 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          id: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+          notifications_enabled: boolean
+          morning_checkin_enabled: boolean
+          morning_checkin_time: string
+          midday_checkin_enabled: boolean
+          midday_checkin_time: string
+          evening_checkin_enabled: boolean
+          evening_checkin_time: string
+          task_start_enabled: boolean
+          task_start_minutes_before: number
+          overdue_task_enabled: boolean
+          overdue_task_check_time: string
+          reflection_enabled: boolean
+          reflection_time: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          notifications_enabled?: boolean
+          morning_checkin_enabled?: boolean
+          morning_checkin_time?: string
+          midday_checkin_enabled?: boolean
+          midday_checkin_time?: string
+          evening_checkin_enabled?: boolean
+          evening_checkin_time?: string
+          task_start_enabled?: boolean
+          task_start_minutes_before?: number
+          overdue_task_enabled?: boolean
+          overdue_task_check_time?: string
+          reflection_enabled?: boolean
+          reflection_time?: string
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          notifications_enabled?: boolean
+          morning_checkin_enabled?: boolean
+          morning_checkin_time?: string
+          midday_checkin_enabled?: boolean
+          midday_checkin_time?: string
+          evening_checkin_enabled?: boolean
+          evening_checkin_time?: string
+          task_start_enabled?: boolean
+          task_start_minutes_before?: number
+          overdue_task_enabled?: boolean
+          overdue_task_check_time?: string
+          reflection_enabled?: boolean
+          reflection_time?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          id: string
+          created_at: string | null
+          user_id: string
+          endpoint: string
+          p256dh_key: string
+          auth_key: string
+          user_agent: string | null
+          device_name: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          user_id: string
+          endpoint: string
+          p256dh_key: string
+          auth_key: string
+          user_agent?: string | null
+          device_name?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          user_id?: string
+          endpoint?: string
+          p256dh_key?: string
+          auth_key?: string
+          user_agent?: string | null
+          device_name?: string | null
+        }
+        Relationships: []
+      }
+      notification_log: {
+        Row: {
+          id: string
+          created_at: string | null
+          user_id: string
+          notification_type: string
+          title: string | null
+          body: string | null
+          sent: boolean
+          error_message: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          user_id: string
+          notification_type: string
+          title?: string | null
+          body?: string | null
+          sent?: boolean
+          error_message?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          user_id?: string
+          notification_type?: string
+          title?: string | null
+          body?: string | null
+          sent?: boolean
+          error_message?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string | null

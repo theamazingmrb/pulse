@@ -8,6 +8,8 @@ import { AuthProvider } from "@/lib/auth-context";
 import { SidebarProvider } from "@/lib/sidebar-context";
 import { ThemeProvider } from "next-themes";
 import OnboardingTrigger from "@/components/layout/OnboardingTrigger";
+import QuickAddProvider from "@/components/QuickAddProvider";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -15,6 +17,8 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "Pulse",
   description: "Stay focused on what matters most.",
+  // Enable PWA capabilities for push notifications
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -25,10 +29,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <SpotifyProvider>
               <SidebarProvider>
-                <OnboardingTrigger>
-                  <AppShell>{children}</AppShell>
-                  <Toaster position="top-right" richColors closeButton />
-                </OnboardingTrigger>
+                <QuickAddProvider>
+                  <OnboardingTrigger>
+                    <AppShell>{children}</AppShell>
+                    <Toaster position="top-right" richColors closeButton />
+                    <ServiceWorkerRegistration />
+                  </OnboardingTrigger>
+                </QuickAddProvider>
               </SidebarProvider>
             </SpotifyProvider>
           </AuthProvider>

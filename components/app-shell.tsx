@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/lib/sidebar-context";
 import Nav from "./nav";
+import { NotificationPrompt } from "./notification-prompt";
 
 // Pages that should render without the nav sidebar
 const NO_NAV_PATHS = ["/", "/signin", "/signup"];
@@ -10,6 +11,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const showNav = !NO_NAV_PATHS.includes(path);
   const { collapsed } = useSidebar();
+  
+  // Show notification prompt on check-in page for first-time users
+  const showNotificationPrompt = path === "/checkin";
 
   return (
     <div className="flex min-h-screen">
@@ -29,6 +33,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      
+      {/* Notification permission prompt */}
+      {showNotificationPrompt && (
+        <NotificationPrompt showOnFirstCheckin={true} />
+      )}
     </div>
   );
 }
