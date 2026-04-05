@@ -210,7 +210,7 @@ export default function FocusTimerPage() {
     setIsRunning(false);
     setIsPaused(false);
     setTimeRemaining(duration * 60);
-    setSessionStartTime(null);
+    startTimeRef.current = null;
 
     // Abandon current session if exists
     if (currentSession) {
@@ -348,7 +348,7 @@ export default function FocusTimerPage() {
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
                 Duration
               </p>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {PRESETS.map((preset) => (
                   <button
                     key={preset.minutes}
@@ -357,7 +357,7 @@ export default function FocusTimerPage() {
                       setCustomMinutes(null);
                       setTimeRemaining(preset.minutes * 60);
                     }}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all min-w-0 ${
                       selectedPreset.minutes === preset.minutes && !customMinutes
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border hover:border-primary/50 hover:bg-primary/5"
@@ -405,10 +405,10 @@ export default function FocusTimerPage() {
                 Link to a task
               </button>
               {showTaskSelector && (
-                <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                <div className="mt-3 space-y-2 max-h-60 overflow-y-auto overflow-x-hidden">
                   <button
                     onClick={() => setSelectedTaskId(null)}
-                    className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
+                    className={`w-full text-left p-2 rounded-lg text-sm transition-colors min-w-0 ${
                       !selectedTaskId
                         ? "bg-primary/10 border border-primary/30"
                         : "hover:bg-secondary border border-transparent"
@@ -420,7 +420,7 @@ export default function FocusTimerPage() {
                     <button
                       key={task.id}
                       onClick={() => setSelectedTaskId(task.id)}
-                      className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
+                      className={`w-full text-left p-2 rounded-lg text-sm transition-colors min-w-0 ${
                         selectedTaskId === task.id
                           ? "bg-primary/10 border border-primary/30"
                           : "hover:bg-secondary border border-transparent"
@@ -428,7 +428,7 @@ export default function FocusTimerPage() {
                     >
                       <div className="font-medium truncate">{task.title}</div>
                       {task.project_id && task.project && (
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground truncate">
                           {task.project.name}
                         </div>
                       )}
@@ -499,7 +499,7 @@ export default function FocusTimerPage() {
 
                     {/* Search Results */}
                     {searchResults.length > 0 && (
-                      <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                      <div className="mt-3 space-y-2 max-h-48 overflow-y-auto overflow-x-hidden">
                         {searchResults.slice(0, 6).map((track) => (
                           <button
                             key={track.id}
@@ -508,7 +508,7 @@ export default function FocusTimerPage() {
                               setSearchQuery("");
                               setSearchResults([]);
                             }}
-                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors"
+                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors min-w-0"
                           >
                             {track.album_art && (
                               <Image
@@ -516,7 +516,7 @@ export default function FocusTimerPage() {
                                 alt={track.name}
                                 width={40}
                                 height={40}
-                                className="rounded"
+                                className="rounded flex-shrink-0"
                               />
                             )}
                             <div className="flex-1 min-w-0 text-left">

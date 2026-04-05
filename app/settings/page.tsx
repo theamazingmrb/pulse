@@ -253,7 +253,7 @@ function SettingsPageContent() {
                 onValueChange={(value) => handlePrefChange('morning_checkin_time', value)}
                 disabled={!localPrefs.morning_checkin_enabled || isSaving}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20 sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -287,7 +287,7 @@ function SettingsPageContent() {
                 onValueChange={(value) => handlePrefChange('midday_checkin_time', value)}
                 disabled={!localPrefs.midday_checkin_enabled || isSaving}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20 sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -321,7 +321,7 @@ function SettingsPageContent() {
                 onValueChange={(value) => handlePrefChange('evening_checkin_time', value)}
                 disabled={!localPrefs.evening_checkin_enabled || isSaving}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20 sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -368,7 +368,7 @@ function SettingsPageContent() {
                 onValueChange={(value) => handlePrefChange('task_start_minutes_before', parseInt(value))}
                 disabled={!localPrefs.task_start_enabled || isSaving}
               >
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-28 sm:w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -428,7 +428,7 @@ function SettingsPageContent() {
                 onValueChange={(value) => handlePrefChange('reflection_time', value)}
                 disabled={!localPrefs.reflection_enabled || isSaving}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20 sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
