@@ -33,18 +33,18 @@ describe("getNextOnboardingStep", () => {
   });
 
   it("returns the next step after welcome", () => {
-    expect(getNextOnboardingStep(["welcome"])).toBe("projects");
+    expect(getNextOnboardingStep(["welcome"])).toBe("north-star");
   });
 
   it("skips all completed steps and returns the first incomplete one", () => {
     expect(
-      getNextOnboardingStep(["welcome", "projects", "tasks"])
+      getNextOnboardingStep(["welcome", "north-star", "projects", "tasks"])
     ).toBe("journal");
   });
 
   it("returns 'complete' when only the last step is missing", () => {
     expect(
-      getNextOnboardingStep(["welcome", "projects", "tasks", "journal", "playlist"])
+      getNextOnboardingStep(["welcome", "north-star", "projects", "tasks", "journal", "playlist"])
     ).toBe("complete");
   });
 
@@ -53,9 +53,9 @@ describe("getNextOnboardingStep", () => {
   });
 
   it("respects step order even if completed steps are out of order", () => {
-    // 'projects' not done, 'tasks' done — should return 'projects'
+    // 'north-star' not done, 'tasks' done — should return 'north-star'
     expect(getNextOnboardingStep(["welcome", "tasks", "journal"])).toBe(
-      "projects"
+      "north-star"
     );
   });
 });

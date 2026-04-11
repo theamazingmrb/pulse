@@ -6,6 +6,17 @@ import OnboardingFlow, {
 } from "@/components/onboarding/OnboardingFlow";
 import { Target } from "lucide-react";
 
+// Mock useAuth for components that need it (like NorthStarStep)
+vi.mock("@/lib/auth-context", () => ({
+  useAuth: () => ({ user: { id: "u1" } }),
+}));
+
+// Mock north-star lib
+vi.mock("@/lib/north-star", () => ({
+  getNorthStar: vi.fn().mockResolvedValue(null),
+  upsertNorthStar: vi.fn().mockResolvedValue({ id: "ns1", user_id: "u1", content: "Test" }),
+}));
+
 // Minimal step set for most tests
 const makeSteps = () => [
   {
@@ -214,8 +225,8 @@ describe("OnboardingFlow", () => {
   });
 
   describe("DEFAULT_ONBOARDING_STEPS", () => {
-    it("has 6 steps", () => {
-      expect(DEFAULT_ONBOARDING_STEPS).toHaveLength(6);
+    it("has 7 steps", () => {
+      expect(DEFAULT_ONBOARDING_STEPS).toHaveLength(7);
     });
 
     it("starts with the welcome step", () => {
