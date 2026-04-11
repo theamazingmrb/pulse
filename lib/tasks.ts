@@ -71,6 +71,7 @@ export const createTask = async (
     start_time: task.start_time || null,
     end_time: task.end_time || null,
     locked: task.locked || false,
+    focus_mode: task.focus_mode || null,
   };
 
   const { data, error } = await supabase

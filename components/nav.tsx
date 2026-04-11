@@ -131,20 +131,20 @@ export default function Nav() {
       </aside>
 
       {/* ── Mobile bottom tab bar ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card flex items-center px-1 safe-area-inset-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card/95 backdrop-blur-md flex items-center px-1 safe-area-inset-bottom shadow-lg">
         {mobilePrimaryLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors",
+              "flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[44px] py-2 px-1 transition-all touch-feedback",
               path === href
                 ? "text-primary"
-                : "text-muted-foreground active:bg-secondary/50"
+                : "text-muted-foreground active:bg-secondary/50 active:scale-95"
             )}
           >
-            <Icon size={22} strokeWidth={path === href ? 2.5 : 2} />
-            <span className="text-[11px] font-medium">{label}</span>
+            <Icon size={24} strokeWidth={path === href ? 2.5 : 2} />
+            <span className="text-[10px] font-medium">{label}</span>
           </Link>
         ))}
         
@@ -152,35 +152,35 @@ export default function Nav() {
         <button
           onClick={() => setShowOverflow(!showOverflow)}
           className={cn(
-            "flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors",
+            "flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[44px] py-2 px-1 transition-all touch-feedback",
             showOverflow || isActiveOverflowItem
               ? "text-primary"
-              : "text-muted-foreground active:bg-secondary/50"
+              : "text-muted-foreground active:bg-secondary/50 active:scale-95"
           )}
         >
-          {showOverflow ? <X size={22} strokeWidth={2} /> : <MoreHorizontal size={22} strokeWidth={showOverflow || isActiveOverflowItem ? 2.5 : 2} />}
-          <span className="text-[11px] font-medium">{showOverflow ? "Close" : "More"}</span>
+          {showOverflow ? <X size={24} strokeWidth={2} /> : <MoreHorizontal size={24} strokeWidth={showOverflow || isActiveOverflowItem ? 2.5 : 2} />}
+          <span className="text-[10px] font-medium">{showOverflow ? "Close" : "More"}</span>
         </button>
       </nav>
 
       {/* ── Mobile overflow menu ── */}
       {showOverflow && (
-        <div className="md:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={() => setShowOverflow(false)}>
+        <div className="md:hidden fixed inset-0 z-40 bg-background/90 backdrop-blur-md" onClick={() => setShowOverflow(false)}>
           <div 
-            className="absolute bottom-16 left-0 right-0 bg-card border-t border-border p-4 safe-area-inset-bottom"
+            className="absolute bottom-16 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-4 safe-area-inset-bottom shadow-2xl animate-in slide-in-from-bottom duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {mobileOverflowLinks.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setShowOverflow(false)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-2 p-4 rounded-lg min-h-[80px] transition-colors",
+                    "flex flex-col items-center justify-center gap-2 p-4 rounded-xl min-h-[88px] transition-all touch-feedback",
                     path === href
                       ? "bg-primary text-primary-foreground"
-                      : "bg-secondary/50 text-muted-foreground active:bg-secondary"
+                      : "bg-secondary/50 text-muted-foreground active:scale-95 active:bg-secondary"
                   )}
                 >
                   <Icon size={28} strokeWidth={path === href ? 2.5 : 2} />
@@ -194,14 +194,14 @@ export default function Nav() {
                 href={mobileSettingsLink.href}
                 onClick={() => setShowOverflow(false)}
                 className={cn(
-                  "flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors",
+                  "flex items-center justify-between w-full px-4 py-4 rounded-xl transition-all min-h-[52px] touch-feedback",
                   path === mobileSettingsLink.href
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary/50 text-muted-foreground active:bg-secondary"
+                    : "bg-secondary/50 text-muted-foreground active:scale-[0.98] active:bg-secondary"
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <mobileSettingsLink.icon size={20} strokeWidth={path === mobileSettingsLink.href ? 2.5 : 2} />
+                  <mobileSettingsLink.icon size={22} strokeWidth={path === mobileSettingsLink.href ? 2.5 : 2} />
                   <span className="text-sm font-medium">{mobileSettingsLink.label}</span>
                 </div>
                 {path === mobileSettingsLink.href && (

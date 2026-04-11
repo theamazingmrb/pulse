@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Task, SchedulingMode } from "@/types";
+import { Task, SchedulingMode, FocusMode } from "@/types";
 import { createTask, updateTask } from "@/lib/tasks";
 import { useAuth } from "@/lib/auth-context";
 import PrioritySelector from "./PrioritySelector";
 import SchedulingModeSelector from "./SchedulingModeSelector";
 import ProjectSelector from "./ProjectSelector";
+import FocusModeSelector from "./FocusModeSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,9 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
   );
   const [estimatedDuration, setEstimatedDuration] = useState(
     initialData?.estimated_duration || 30
+  );
+  const [focusMode, setFocusMode] = useState<FocusMode | null>(
+    (initialData as Task & { focus_mode?: FocusMode | null })?.focus_mode || null
   );
   const [startTime, setStartTime] = useState(
     initialData?.start_time
@@ -82,6 +86,7 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         priority_level: priorityLevel,
         scheduling_mode: schedulingMode,
         estimated_duration: estimatedDuration,
+        focus_mode: focusMode,
         start_time: schedulingMode === "manual" && startTime ? new Date(startTime).toISOString() : null,
         end_time: schedulingMode === "manual" && endTime ? new Date(endTime).toISOString() : null,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
@@ -123,6 +128,7 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
     setPriorityLevel(1);
     setSchedulingMode("auto");
     setEstimatedDuration(30);
+    setFocusMode(null);
     setStartTime("");
     setEndTime("");
     setDueDate("");
@@ -172,6 +178,16 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         <PrioritySelector
           selectedPriority={priorityLevel}
           onPriorityChange={setPriorityLevel}
+          disabled={loading}
+        />
+      </div>
+
+      {/* Focus Mode */}
+      <div className="space-y-1.5">
+        <Label>Focus Mode (optional)</Label>
+        <FocusModeSelector
+          selectedMode={focusMode}
+          onModeChange={setFocusMode}
           disabled={loading}
         />
       </div>

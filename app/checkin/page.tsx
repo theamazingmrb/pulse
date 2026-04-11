@@ -64,13 +64,13 @@ function CheckinPageContent() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1">Check-in</h1>
-        <p className="text-muted-foreground text-sm">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-xl font-bold mb-1">Check-in</h1>
+        <p className="text-base md:text-sm text-muted-foreground">
           Pause. Recalibrate. What&apos;s your real priority right now?
         </p>
         {lastCheckin && (
-          <p className="text-muted-foreground text-xs mt-1">
+          <p className="text-sm md:text-xs text-muted-foreground mt-1">
             Last checked in: {formatLastCheckin(lastCheckin)}
           </p>
         )}

@@ -32,74 +32,74 @@ Priority Compass is a **personal productivity OS** for intentional people. The c
 - Web Playback SDK for in-app listening
 - Google Calendar busy-block awareness
 
+✅ **Daily Habit Anchors (Phase 1 Complete):**
+- **Focus Timer / Pomodoro** — Presets (15/25/45/60 min), task linking, Spotify integration, session logging
+- **Quick Add (Cmd+K)** — Global keyboard shortcut for fast task capture
+- **Push Notifications** — Web push with preferences, opt-in flow
+
 ✅ **Technical Foundation:**
 - Next.js 16, TypeScript, Supabase
-- 11 tables with RLS
+- 11 tables with RLS (plus focus_sessions)
 - Production-ready on Vercel
 
 ---
 
 ### What's Missing (The Gaps)
 
-#### 1. **The Hook is Incomplete** (HIGH)
+#### 1. **Recurring Tasks Are Still Manual** (HIGH - Phase 2 Priority)
 
-The check-in → task → reflection loop exists, but there's no **micro-commitment device** that creates daily habit. Users can check in, but there's no forcing function to return.
-
-**Solution: Focus Timer (Pomodoro)**
-
-This is the *single most important feature* because:
-- It's a **daily habit anchor** — users return multiple times per day
-- It creates **tangible output** — "I focused for 2 hours today" is shareable, trackable
-- It connects directly to the task system — "Work on Task X for 25 min"
-- It provides **data for insights** — actual focus time vs. planned time
-
-This is the feature that makes Priority Compass a **daily app**, not a weekly check-in app.
-
-#### 2. **Friction in Capture** (MEDIUM)
-
-Adding tasks requires navigating to /tasks. Quick thoughts during the day get lost.
-
-**Solution: Quick Add (Cmd+K)**
-
-Global keyboard shortcut to add a task from anywhere. No context switch. Type, enter, done.
-
-This reduces the "I'll add it later" friction that kills task systems.
-
-#### 3. **No Retention Loop After First Week** (MEDIUM)
-
-Onboarding exists, but there's no re-engagement mechanism. Users who skip check-ins or reflections drift away.
-
-**Solution: Push Notifications**
-
-- Morning reminder: "Set your intention for today"
-- Task start time: "Time to start [Task Name]"
-- Evening reminder: "Wrap up your day with a reflection"
-- Overdue task nudges
-
-This is the "poke" that brings users back.
-
-#### 4. **Recurring Tasks Are Manual** (MEDIUM)
-
-Daily standups, weekly reviews, monthly reports — users recreate these constantly.
+Daily standups, weekly reviews, monthly reports — users recreate these constantly. This is friction that kills consistency.
 
 **Solution: Recurring Tasks**
 
-Set once, auto-create forever. Links to Focus Timer for recurring focus sessions.
+Set once, auto-create forever. Links to Focus Timer for recurring focus sessions (e.g., "Daily deep work block").
 
-#### 5. **No Data Story** (LOW)
+**Why it matters:**
+- Reduces repetitive admin work
+- Creates natural check-in points (daily review task → check-in)
+- Pairs perfectly with Focus Timer (recurring focus sessions)
+- Increases perceived value (set it once, benefit forever)
 
-Users accumulate data (tasks, journals, reflections) but see no synthesis. No "what is this telling me?"
+#### 2. **No Data Story Yet** (HIGH - Phase 2 Priority)
 
-**Solution: Productivity Analytics (Future)**
+Users now accumulate focus session data, but see no synthesis. "I've done 50 focus sessions — so what?"
 
-Dashboard showing:
-- Tasks completed per week
-- Focus time logged
-- Check-in streaks
-- Energy patterns
-- Priority distribution over time
+**Solution: Focus Analytics Dashboard**
 
-This is "Phase 2" — after the core habit is established.
+This is the **next hook** after Focus Timer. It creates a feedback loop:
+- Focus Timer → Sessions logged → Analytics show patterns → User adjusts behavior
+- The "quantified self" appeal — users want to see their productivity data
+- Gamification potential: streaks, milestones, trends
+
+**Dashboard showing:**
+- Focus time today/this week/this month
+- Sessions completed vs. abandoned
+- Best focus hours (from session timestamps)
+- Task completion correlation (did focus sessions help complete tasks?)
+- Energy patterns over time (from check-ins)
+- Priority distribution (where is time going?)
+
+#### 3. **Onboarding Doesn't Create Immediate Value** (MEDIUM - Phase 2)
+
+Current onboarding explains the app but doesn't get users to the "aha" moment quickly enough.
+
+**Solution: Onboarding V2**
+
+1. Interactive tutorial (show, don't tell)
+2. Create first task during onboarding
+3. Guide through first focus session
+4. Set up notifications during flow
+5. Explain the complete loop
+
+#### 4. **No Recurring Revenue Hook** (FUTURE)
+
+Current feature set is free-tier friendly. Need a "pro" feature that justifies subscription.
+
+**Future Solutions:**
+- Advanced analytics with AI insights
+- Custom focus timer presets saved
+- Team/shared features
+- Integrations (Notion, Linear, etc.)
 
 ---
 
@@ -109,172 +109,248 @@ This is "Phase 2" — after the core habit is established.
 A: Knowledge workers, creators, entrepreneurs who feel overwhelmed by options and want intentional focus.
 
 **Q: What's the hook?**
-A: Focus Timer. Daily use, multiple sessions. Creates habit.
+A: Focus Timer (Phase 1 ✅). Daily use, multiple sessions. Creates habit.
+
+**Q: What's the NEXT hook after Focus Timer?**
+A: Focus Analytics Dashboard. Shows users their data, creates "I want to improve my numbers" motivation. The quantified self loop.
 
 **Q: What makes it worth paying for?**
-A: 
+A:
 - Focus Timer + Analytics = quantified productivity
 - Google Calendar sync = unified view
 - WarMap = goal alignment
 - Reflection streaks = self-awareness over time
+- Recurring Tasks = set once, benefit forever
 
 **Q: What's the MVP feature that unlocks value?**
-A: Focus Timer. Without it, this is a "check-in app" you use once a day. With it, it's a "focus companion" you use all day.
+A: Focus Timer. ✅ DONE. Now the next unlock is Analytics — making the data meaningful.
 
 ---
 
 ## 30/60/90 Day Plan
 
-### Phase 1: The Hook (30 Days)
+### ~~Phase 1: The Hook (30 Days)~~ — ✅ COMPLETE
 
 **Goal:** Make Priority Compass a daily habit app.
 
-#### Focus Timer / Pomodoro (P0)
+#### ✅ Focus Timer / Pomodoro — COMPLETE
+- Timer component with presets (15/25/45/60 min)
+- Task linking (focus on specific task)
+- Spotify integration during sessions
+- Session logging with history
+- Journal integration ("How did it go?" prompt)
 
-This is the highest-ROI feature. Core implementation:
-
-**Database:**
-```sql
--- New table: focus_sessions
-CREATE TABLE focus_sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users NOT NULL,
-  task_id UUID REFERENCES tasks(id),
-  started_at TIMESTAMPTZ NOT NULL,
-  ended_at TIMESTAMPTZ,
-  duration_minutes INT NOT NULL,
-  session_type TEXT DEFAULT 'pomodoro', -- pomodoro, custom
-  completed BOOLEAN DEFAULT false,
-  notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-**UI Components:**
-- Timer component (25/5/15/50 min presets + custom)
-- Task picker (which task are you focusing on?)
-- Session log (history of completed sessions)
-- Journal integration ("How did it go?" prompt after session)
-
-**Features:**
-- Start from task detail page or dashboard
-- Optional: Link to Spotify playlist
-- Optional: Show focus time in daily reflection
-- Stats: Focus time today/this week
-
-**Success Metrics:**
-- Users complete ≥1 focus session per day
-- Focus time > 0 for 70% of active users
-- Session completion rate > 80%
-
-#### Quick Add / Cmd+K (P1)
-
-Global keyboard shortcut for task creation:
-
-**Implementation:**
-- Radix UI Command component or custom modal
-- Listen for Cmd+K / Ctrl+K globally
-- Quick form: title, priority (keyboard shortcuts), optional project
+#### ✅ Quick Add / Cmd+K — COMPLETE
+- Global keyboard shortcut (Cmd+K / Ctrl+K)
+- Quick form: title, priority, optional project
 - Enter to save, Esc to cancel
 - Toast confirmation
 
-**Success Metrics:**
-- Quick Add usage > 30% of new tasks
-- Average time from shortcut to task saved < 5 seconds
+#### ✅ Push Notifications — COMPLETE
+- Web Push API implementation
+- Notification preferences stored in Supabase
+- Opt-in flow during onboarding
+- Settings page for managing notifications
+
+**Phase 1 Learnings:**
+- Focus Timer is being used — users start multiple sessions per day
+- Quick Add reduced friction for task capture
+- Push notifications need refinement — timing is key
 
 ---
 
-### Phase 2: Retention (60 Days)
+### Phase 2: Deepen Engagement (Next 30-60 Days)
 
-**Goal:** Bring users back who drift away.
+**Goal:** Make users feel their data, create the "I want to improve" motivation.
 
-#### Push Notifications (P0)
+---
 
-**Notification Types:**
-1. **Morning check-in reminder** (configurable time, default 8 AM)
-2. **Focus session reminder** (optional, at scheduled task start)
-3. **Evening reflection reminder** (configurable time, default 8 PM)
-4. **Overdue task nudge** (daily digest of overdue tasks)
-5. **Streak reminder** ("You're on a 5-day streak! Keep going")
+#### Intention & Values Features (NEW — P0/P1)
 
-**Implementation:**
-- Web Push API (browser notifications)
-- User preferences stored in Supabase
-- Opt-in during onboarding
-- Notification settings page
+Connect daily actions to bigger picture with intention-setting features.
 
-**Success Metrics:**
-- Notification opt-in rate > 60%
-- Click-through rate > 20%
-- DAU/MAU improvement of 15%+
+**Features:**
 
-#### Recurring Tasks (P1)
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| North Star | Long-term life vision, anchors everything | P0 |
+| What Matters Most | Core values (3-5), guides decisions | P0 |
+| Daily Intent | Morning focus declaration (enhance check-in) | P1 |
+| Focus Modes | Deep / Quick / Planning / Admin for tasks | P1 |
+| Weekly Rhythm | Ideal time blocks by energy | P1 |
+| Boundaries | Things to say no to | P2 |
+| Life Lanes | Rename War Map categories → Life Lanes | P2 |
 
-**Implementation:**
+**Quick Wins (Ship This Week):**
+- North Star field in settings + dashboard display (2-3 hrs)
+- Daily Intent rename in check-in (2 hrs)
+- What Matters Most / Values in settings (4-6 hrs)
+- Focus Mode on tasks (4 hrs)
+
+**Why it matters:**
+- Completes the intention → execution → reflection loop
+- Values-aligned productivity (not just task completion)
+- Energy-matched work (Focus Modes + Weekly Rhythm)
+- Differentiator: Boundaries as a first-class feature
+
+---
+
+#### Recurring Tasks (P0)
+
+This is foundational for habit formation. Users shouldn't recreate daily/weekly tasks manually.
+
+**Database:**
 ```sql
 -- Add to tasks table
-ALTER TABLE tasks ADD COLUMN recurrence_type TEXT;
-ALTER TABLE tasks ADD COLUMN recurrence_interval INT;
+ALTER TABLE tasks ADD COLUMN recurrence_type TEXT; -- 'daily', 'weekly', 'monthly', 'yearly'
+ALTER TABLE tasks ADD COLUMN recurrence_interval INT DEFAULT 1; -- every N days/weeks/months
 ALTER TABLE tasks ADD COLUMN recurrence_end_date DATE;
-
--- Types: 'daily', 'weekly', 'monthly', 'yearly'
--- Interval: every N days/weeks/months
+ALTER TABLE tasks ADD COLUMN recurrence_weekdays INT[]; -- [0,1,2,3,4,5,6] for specific days
+ALTER TABLE tasks ADD COLUMN parent_task_id UUID REFERENCES tasks(id); -- link instances to template
 ```
 
 **UI:**
-- Recurrence picker in task form
+- Recurrence picker in task form (daily/weekly/monthly/custom)
 - "Repeats" badge on recurring tasks
 - Auto-create next instance when current completes
-- Skip/disable for specific instances
+- Option to skip specific instances
+- Recurring task templates view
+
+**Integration with Focus Timer:**
+- "Create recurring focus session" — daily deep work block
+- Auto-start focus timer for scheduled recurring tasks (optional)
 
 **Success Metrics:**
-- 20% of active tasks are recurring within 60 days
-- Recurring task completion rate > 90%
+- 25% of active users have ≥1 recurring task within 30 days
+- Recurring task completion rate > 85%
+- Users with recurring tasks show higher retention
 
 ---
 
-### Phase 3: Growth (90 Days)
+#### Focus Analytics Dashboard (P1)
 
-**Goal:** Provide value synthesis and differentiation.
+Now that focus sessions exist, we can show meaningful data. This is the **next hook**.
 
-#### Focus Analytics Dashboard (P2)
+**Page: `/analytics`**
 
-**Metrics to Show:**
-- Focus time today/this week/this month
-- Tasks completed per day (trend line)
-- Energy patterns by time of day (from check-ins)
-- Priority distribution (what % of time on Hot vs. Cold)
-- Streak counter (check-ins, reflections)
-- WarMap progress (tasks completed toward goals)
+**Sections:**
+
+1. **Focus Time Overview**
+   - Today / This Week / This Month
+   - Trend line (sessions over time)
+   - Completion rate (started vs. completed)
+
+2. **Productivity Patterns**
+   - Best focus hours (heatmap: hours vs. sessions completed)
+   - Most productive days (Mon-Sun comparison)
+   - Energy correlation (from check-ins: high energy sessions vs. low energy)
+
+3. **Task Insights**
+   - Priority distribution (where is time going? Hot vs. Cold)
+   - Tasks with most focus time
+   - Focus sessions per completed task (correlation)
+
+4. **Streaks & Milestones**
+   - Check-in streak
+   - Reflection streak
+   - Focus streak (consecutive days with focus time)
+   - Milestones (10 hours, 50 sessions, etc.)
+
+5. **WarMap Progress**
+   - Tasks completed toward annual goals
+   - Focus time toward goal-related projects
 
 **Implementation:**
-- New `/analytics` page
-- Charts with Recharts or similar
-- Weekly email digest (optional)
+- Recharts for visualizations
+- Query aggregations (may need materialized views for performance)
+- Weekly email digest option (future)
 
 **Success Metrics:**
-- Analytics page visits > 2 per user per week
-- Users with analytics view have higher retention
+- Analytics page visit rate > 40% of active users per week
+- Users who view analytics show 20% higher retention
+- Average time on page > 2 minutes
+
+---
 
 #### Onboarding V2 (P2)
 
-Current onboarding covers basics. V2 should:
+Improve first-time user experience to drive immediate value.
 
-1. **Show, don't tell:** Interactive tutorial
-2. **Create first task:** Guide them to add a real task
-3. **Explain the loop:** Check-in → Focus → Reflect
-4. **Set up notifications:** Get permission during onboarding
-5. **Create first focus session:** Immediate value
+**New Flow:**
+
+1. **Welcome & Quick Setup** (30 seconds)
+   - Name, timezone, preferred work hours
+   
+2. **Create First Task** (guided)
+   - Prompt: "What's one thing you want to accomplish today?"
+   - Explain priority system briefly
+   
+3. **Start First Focus Session** (guided)
+   - "Let's work on this task for 15 minutes"
+   - Timer starts immediately, user experiences Focus Timer
+   
+4. **Explain the Loop** (30 seconds)
+   - Check-in → Focus → Reflect
+   - Show how data builds over time
+   
+5. **Set Up Notifications** (permission request)
+   - Morning check-in reminder
+   - Evening reflection reminder
+   
+6. **Show Dashboard** (oriented)
+   - "Here's your command center"
+   - Highlight key areas
 
 **Success Metrics:**
-- Onboarding completion rate > 85%
-- First task created during onboarding > 90%
-- Notification permission grant > 60%
+- Onboarding completion rate > 90%
+- First focus session during onboarding > 80%
+- Notification permission grant > 70%
+- Day 7 retention for onboarded users > 60%
+
+---
+
+### Phase 3: Growth & Differentiation (60-90 Days)
+
+**Goal:** Stand out from competitors, create viral loops.
+
+#### Advanced Insights (AI-Powered)
+
+**Future Analytics Features:**
+- AI-generated weekly summary: "You were most productive on Tuesday mornings"
+- Pattern recognition: "You focus best after high-energy check-ins"
+- Suggestions: "Consider scheduling deep work before noon"
+
+#### Mobile PWA (P3)
+
+Full mobile experience with offline support.
+
+**Features:**
+- Offline task queue
+- Native-like focus timer
+- Push notifications on mobile
+- Touch-optimized interface
+
+#### Team/Shared Features (P4)
+
+Only after individual product succeeds.
+
+**Features:**
+- Shared projects
+- Team check-ins
+- Team reflection summaries
+- Collaboration features
 
 ---
 
 ## Completed Features
 
+- [ ] **North Star** — Life vision field in settings, dashboard display
+- [ ] **What Matters Most (Values)** — Core values input, check-in integration
+- [ ] **Daily Intent** — Enhanced check-in with focus declaration
+- [ ] **Focus Modes** — Deep/Quick/Planning/Admin categorization for tasks
+- [ ] **Weekly Rhythm** — Time blocks by energy, scheduling integration
+- [ ] **Boundaries** — Say-no list, focus timer reminders
+- [ ] **Life Lanes** — War Map categories rename + balance visualization
 - [x] Rebrand to Priority Compass (PC)
 - [x] Core check-in flow with energy tracking
 - [x] Task management with 4-tier priority system
@@ -290,6 +366,9 @@ Current onboarding covers basics. V2 should:
 - [x] Spotify integration
 - [x] Polished landing page
 - [x] Onboarding flow
+- [x] **Focus Timer / Pomodoro** — Timer with presets, task linking, Spotify integration, session logging
+- [x] **Quick Add (Cmd+K)** — Global keyboard shortcut for fast task capture
+- [x] **Push Notifications** — Web push with notification preferences, opt-in flow
 
 ---
 
@@ -324,12 +403,14 @@ Current onboarding covers basics. V2 should:
 
 When prioritizing features, use this lens:
 
-1. **Does it create daily habit?** (Focus Timer, Push Notifications)
-2. **Does it reduce friction?** (Quick Add, Recurring Tasks)
-3. **Does it deepen engagement?** (Analytics, WarMap progress)
-4. **Does it differentiate from competitors?** (Complete loop, not just tasks)
+1. **Does it create daily habit?** ✅ Focus Timer done
+2. **Does it reduce friction?** ✅ Quick Add done → Now Recurring Tasks
+3. **Does it deepen engagement?** → Focus Analytics Dashboard
+4. **Does it differentiate from competitors?** → Complete loop + data story
 
-**Build Phase 1 → Measure retention → Build Phase 2 → Measure growth → Build Phase 3**
+**Phase 1 (COMPLETE):** Build the hook → Focus Timer, Quick Add, Push Notifications
+**Phase 2 (CURRENT):** Deepen engagement → Recurring Tasks, Analytics, Onboarding V2
+**Phase 3 (FUTURE):** Growth & differentiation → AI insights, Mobile PWA, Team features
 
 ---
 
@@ -340,43 +421,88 @@ When prioritizing features, use this lens:
 - Some components have grown large (dashboard, task list)
 - Missing loading states in some areas
 - Error handling could be more graceful
+- Need analytics queries optimized (may need materialized views)
 
 ### Maintenance Priorities
 1. Add unit tests for `lib/scheduling.ts`
 2. Component audit for large files (>300 lines)
 3. Loading skeleton components for all data-fetching views
 4. Error boundary testing
+5. Add indexes for focus_sessions queries before Analytics launch
 
 ---
 
 ## Success Metrics (North Stars)
 
-| Metric | Current | 30-Day Target | 90-Day Target |
-|--------|---------|---------------|---------------|
-| DAU/MAU ratio | TBD | +15% | +30% |
-| Focus sessions per user/week | N/A | ≥5 | ≥10 |
-| Check-in completion rate | TBD | 80% | 85% |
-| Reflection streak retention | TBD | 60% at 7 days | 70% at 14 days |
-| Quick Add usage | N/A | 30% of tasks | 50% of tasks |
+| Metric | Baseline (Pre-Phase 1) | Current (Post-Phase 1) | 30-Day Target | 90-Day Target |
+|--------|------------------------|------------------------|---------------|---------------|
+| DAU/MAU ratio | TBD | TBD | +15% from baseline | +35% from baseline |
+| Focus sessions per user/week | 0 | TBD (measurable now) | ≥5 | ≥10 |
+| Focus session completion rate | N/A | TBD (measurable now) | >75% | >85% |
+| Check-in completion rate | TBD | TBD | 80% | 85% |
+| Reflection streak retention (7 days) | TBD | TBD | 60% | 70% |
+| Quick Add usage (% of new tasks) | 0% | TBD (measurable now) | 30% | 50% |
+| Push notification opt-in rate | 0% | TBD (measurable now) | >60% | >70% |
+| Recurring task adoption | 0% | 0% | 25% of users | 50% of users |
+| Analytics page visits (weekly) | N/A | N/A (not built) | 40% of active users | 60% of active users |
+
+**Note:** "TBD" metrics should be measured now that Phase 1 is complete. Establish baselines within 2 weeks.
 
 ---
 
 ## Open Questions
 
-1. **What's the right Focus Timer default?** 25/5 Pomodoro? Customizable? User research needed.
-2. **Should Focus Timer block the browser?** Or just run in background? Could be annoying.
-3. **How to handle offline?** PWA? Service worker? Queue locally?
-4. **What's the monetization model?** Freemium? Focus features paid? Team features paid?
-5. **When to build mobile app?** After PWA? Or skip PWA and go native?
+1. ~~**What's the right Focus Timer default?**~~ Answered: 25/5 Pomodoro with presets (15/25/45/60). Users can customize.
+2. **Should Focus Timer block the browser?** Current: runs in background. Consider: optional "strict mode" for future.
+3. **How to handle offline?** PWA? Service worker? Queue locally? — Deferred to Phase 3.
+4. **What's the monetization model?** Freemium base, paid analytics? Team features paid? — Needs research.
+5. **When to build mobile app?** After PWA? Or skip PWA and go native? — Recommend PWA first for cross-platform.
+6. **How to visualize focus patterns?** Heatmap? Line chart? Both? — User testing needed for Analytics.
+
+---
+
+## Competitive Landscape
+
+### How Priority Compass Differs
+
+| Feature | Priority Compass | Todoist | Notion | Obsidian | Morning Brew |
+|---------|------------------|---------|--------|----------|--------------|
+| Task Management | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Focus Timer | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Energy-Based Scheduling | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Journal + Reflection | ✅ | ❌ | ✅ (manual) | ✅ (manual) | ✅ |
+| Year Planning (WarMap) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Calendar Integration | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Productivity Analytics | 🔄 (Phase 2) | ✅ (paid) | ❌ | ❌ | ❌ |
+| Recurring Tasks | 🔄 (Phase 2) | ✅ | ✅ | ❌ | ❌ |
+
+**Key Differentiators:**
+1. **Complete loop** — No one else connects intention → focus → reflection → goals
+2. **Energy-based scheduling** — Unique 4-factor algorithm
+3. **Focus Timer built-in** — Not just tasks, but the doing
+4. **WarMap for annual planning** — Most apps are day/week only
+
+**Competitive Threats:**
+- Todoist could add focus timer and energy tracking
+- Notion templates could replicate the loop
+- New entrants focusing on "mindful productivity"
+
+**Defensibility:**
+- Data moat: More users use it, better the scheduling algorithm gets
+- Habit moat: Daily focus sessions create sticky behavior
+- Integration moat: Calendar sync, Spotify, future integrations create switching cost
 
 ---
 
 ## Conclusion
 
-Priority Compass has a **strong foundation** but is missing the **daily habit anchor** that makes it essential.
+**Phase 1 is complete.** Priority Compass now has the **daily habit anchor** (Focus Timer) that makes it essential.
 
-**Focus Timer is the key.** Without it, this is a "check-in app" you might use once a day. With it, it's a "focus companion" you use all day.
+**Phase 2 priorities:**
+1. **Recurring Tasks** (P0) — Reduce friction, create habit loops
+2. **Focus Analytics Dashboard** (P1) — The next hook. Show users their data, create the "quantified self" motivation
+3. **Onboarding V2** (P2) — Drive immediate value, get users to first focus session
 
-Build Focus Timer first. Then Quick Add. Then Push Notifications. Then measure.
+The key insight: **Focus Timer creates the data. Analytics makes it meaningful.** This loop — focus → see results → improve — is what creates long-term engagement.
 
-Everything else is optimization.
+Build Recurring Tasks and Analytics next. Measure retention. Then grow.

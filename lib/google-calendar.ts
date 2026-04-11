@@ -177,6 +177,7 @@ export async function getCalendarBusyBlocks(date: Date): Promise<Task[]> {
         google_event_id: e.id,
         created_at: "",
         updated_at: "",
+        focus_mode: null,
       }));
   } catch {
     return [];

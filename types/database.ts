@@ -38,9 +38,11 @@ export type Database = {
         Row: {
           context: string | null
           created_at: string | null
+          daily_intent: string | null
           energy_level: number | null
           id: string
           other_priorities: string[] | null
+          say_no_to: string | null
           time_of_day: string | null
           top_priority: string
           updated_at: string | null
@@ -49,9 +51,11 @@ export type Database = {
         Insert: {
           context?: string | null
           created_at?: string | null
+          daily_intent?: string | null
           energy_level?: number | null
           id?: string
           other_priorities?: string[] | null
+          say_no_to?: string | null
           time_of_day?: string | null
           top_priority: string
           updated_at?: string | null
@@ -60,9 +64,11 @@ export type Database = {
         Update: {
           context?: string | null
           created_at?: string | null
+          daily_intent?: string | null
           energy_level?: number | null
           id?: string
           other_priorities?: string[] | null
+          say_no_to?: string | null
           time_of_day?: string | null
           top_priority?: string
           updated_at?: string | null
@@ -365,6 +371,30 @@ export type Database = {
         }
         Relationships: []
       }
+      north_star: {
+        Row: {
+          id: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+          content: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          content: string
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          content?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string | null
@@ -383,6 +413,7 @@ export type Database = {
           title: string
           updated_at: string | null
           user_id: string
+          focus_mode: string | null
         }
         Insert: {
           created_at?: string | null
@@ -401,6 +432,7 @@ export type Database = {
           title: string
           updated_at?: string | null
           user_id: string
+          focus_mode?: string | null
         }
         Update: {
           created_at?: string | null
@@ -419,6 +451,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string
+          focus_mode?: string | null
         }
         Relationships: [
           {
@@ -429,6 +462,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weekly_rhythms: {
+        Row: {
+          id: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+          day_of_week: number
+          time_block: string
+          energy_level: string
+          focus_mode: string
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          day_of_week: number
+          time_block: string
+          energy_level?: string
+          focus_mode?: string
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          day_of_week?: number
+          time_block?: string
+          energy_level?: string
+          focus_mode?: string
+          notes?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

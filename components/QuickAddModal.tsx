@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { createTask, PRIORITY_CONFIG } from "@/lib/tasks";
 import { getActiveProjects } from "@/lib/projects";
-import { Project } from "@/types";
+import { Project, FocusMode, FOCUS_MODE_CONFIG } from "@/types";
 import {
   Command,
   CommandInput,
@@ -30,6 +30,7 @@ export default function QuickAddModal({ open, onOpenChange }: QuickAddModalProps
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<number>(2); // Default to Warm
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [focusMode, setFocusMode] = useState<FocusMode | null>(null);
   const [dueDate, setDueDate] = useState<string>("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,6 +53,7 @@ export default function QuickAddModal({ open, onOpenChange }: QuickAddModalProps
       setTitle("");
       setPriority(2);
       setProjectId(null);
+      setFocusMode(null);
       setDueDate("");
       setStep("title");
       setLoading(false);
@@ -89,6 +91,7 @@ export default function QuickAddModal({ open, onOpenChange }: QuickAddModalProps
         status: "active" as const,
         notes: null,
         image_url: null,
+        focus_mode: focusMode,
       };
 
       const result = await createTask(taskData);
@@ -183,6 +186,45 @@ export default function QuickAddModal({ open, onOpenChange }: QuickAddModalProps
                 </span>
               </div>
               {priority === p.level && (
+                <Check className="h-4 w-4 text-primary" />
+              )}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        {/* Focus Mode Selection */}
+        <CommandGroup heading="Focus Mode">
+          <CommandItem
+            value="focus-none"
+            onSelect={() => setFocusMode(null)}
+            className="flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full border border-border" />
+              <span className="font-medium">None</span>
+            </div>
+            {!focusMode && <Check className="h-4 w-4 text-primary" />}
+          </CommandItem>
+          {Object.entries(FOCUS_MODE_CONFIG).map(([mode, cfg]) => (
+            <CommandItem
+              key={mode}
+              value={`focus-${mode}`}
+              onSelect={() => setFocusMode(mode as FocusMode)}
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: cfg.color }}
+                />
+                <span className="font-medium">{cfg.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {cfg.description}
+                </span>
+              </div>
+              {focusMode === mode && (
                 <Check className="h-4 w-4 text-primary" />
               )}
             </CommandItem>

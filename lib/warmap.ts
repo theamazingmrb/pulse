@@ -69,7 +69,7 @@ export async function deleteWarMapCategory(id: string): Promise<boolean> {
 export async function createWarMapItem(
   userId: string,
   categoryId: string,
-  data: { title: string; description?: string; target_date?: string }
+  data: { title: string; description?: string; target_date?: string; north_star_alignment?: string }
 ): Promise<WarMapItem | null> {
   const { data: result, error } = await supabase
     .from("warmap_items")
@@ -92,6 +92,7 @@ export async function updateWarMapItem(
     status: "active" | "completed" | "abandoned";
     target_date: string;
     sort_order: number;
+    north_star_alignment: string;
   }>
 ): Promise<WarMapItem | null> {
   const { data: result, error } = await supabase

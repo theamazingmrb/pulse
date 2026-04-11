@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Save, Calendar, Target, TrendingUp } from "lucide-react";
 import { ReflectionType, Reflection } from "@/types";
 import { useAuth } from "@/lib/auth-context";
@@ -16,6 +17,7 @@ import {
   REFLECTION_PROMPTS,
   REFLECTION_LABELS
 } from "@/lib/reflections";
+import { getTodayIntentForReflection } from "@/lib/daily-intent";
 import { toast } from "sonner";
 
 const TYPE_ICONS = {
@@ -56,6 +58,8 @@ export default function ReflectionForm({
   const [sections, setSections] = useState<Record<string, string>>({});
   const [mood, setMood] = useState<string>("");
   const [energyLevel, setEnergyLevel] = useState<number | null>(null);
+  const [accomplishedIntent, setAccomplishedIntent] = useState<boolean>(false);
+  const [dailyIntent, setDailyIntent] = useState<{ daily_intent: string | null; say_no_to: string | null } | null>(null);
 
   const prompts = REFLECTION_PROMPTS[type];
   const periodStart = getPeriodStart(type);
@@ -68,6 +72,7 @@ export default function ReflectionForm({
       setSections(existingReflection.sections);
       setMood(existingReflection.mood || "");
       setEnergyLevel(existingReflection.energy_level);
+      setAccomplishedIntent(existingReflection.accomplished_intent ?? false);
     } else {
       // Initialize empty sections for this type
       const emptySections: Record<string, string> = {};
@@ -77,6 +82,18 @@ export default function ReflectionForm({
       setSections(emptySections);
     }
   }, [type, prompts, existingReflection]);
+
+  // Load Daily Intent for daily reflections (today's intent only)
+  useEffect(() => {
+    if (user && type === "daily") {
+      loadDailyIntent();
+    }
+    async function loadDailyIntent() {
+      if (!user) return;
+      const intent = await getTodayIntentForReflection(user.id);
+      setDailyIntent(intent);
+    }
+  }, [user, type]);
 
   const handleSectionChange = (key: string, value: string) => {
     setSections(prev => ({ ...prev, [key]: value }));
@@ -101,7 +118,8 @@ export default function ReflectionForm({
         periodStart,
         sections,
         mood || null,
-        energyLevel
+        energyLevel,
+        type === "daily" && dailyIntent?.daily_intent ? accomplishedIntent : null
       );
 
       if (result) {
@@ -221,6 +239,39 @@ export default function ReflectionForm({
           </div>
         </CardContent>
       </Card>
+
+      {/* Daily Intent Reminder (only for daily reflections with today's intent) */}
+      {type === "daily" && dailyIntent?.daily_intent && (
+        <Card className="border-emerald-500/20 bg-emerald-500/5">
+          <CardContent className="p-4 space-y-3">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Target className="w-4 h-4 text-emerald-500" />
+              Your Morning Intent
+            </Label>
+            <div className="text-sm space-y-2">
+              <p className="text-foreground font-medium">{dailyIntent.daily_intent}</p>
+              {dailyIntent.say_no_to && (
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Saying no to:</span> {dailyIntent.say_no_to}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t border-emerald-500/10">
+              <Checkbox
+                id="accomplished-intent"
+                checked={accomplishedIntent}
+                onCheckedChange={(checked) => setAccomplishedIntent(checked as boolean)}
+              />
+              <label
+                htmlFor="accomplished-intent"
+                className="text-sm text-muted-foreground cursor-pointer select-none"
+              >
+                I accomplished my daily intent
+              </label>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Reflection Sections */}
       <div className="space-y-4">

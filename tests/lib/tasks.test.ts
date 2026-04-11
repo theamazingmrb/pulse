@@ -166,6 +166,7 @@ describe("createTask", () => {
       start_time: null,
       end_time: null,
       locked: false,
+      focus_mode: null,
     });
 
     expect(result?.title).toBe("Test Task");
@@ -190,6 +191,7 @@ describe("createTask", () => {
       start_time: null,
       end_time: null,
       locked: false,
+      focus_mode: null,
     });
 
     expect(result).toBeNull();
@@ -215,6 +217,7 @@ describe("createTask", () => {
       start_time: null,
       end_time: null,
       locked: false,
+      focus_mode: null,
     });
 
     expect(chain.insert).toHaveBeenCalledWith([
@@ -224,6 +227,7 @@ describe("createTask", () => {
         scheduling_mode: "manual",
         estimated_duration: 30,
         locked: false,
+        focus_mode: null,
       }),
     ]);
   });

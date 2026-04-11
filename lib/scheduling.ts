@@ -1,4 +1,4 @@
-import { Task } from '@/types';
+import { Task, WeeklyRhythm, FocusMode } from '@/types';
 
 export interface TimeSlot {
   start: Date;
@@ -6,6 +6,7 @@ export interface TimeSlot {
   available: boolean;
   task?: Task;
   score?: number;
+  rhythmBoost?: number;
 }
 
 export interface SchedulingOptions {
@@ -19,6 +20,7 @@ export interface SchedulingOptions {
   bufferTime: number; // minutes before/after events
   enableDeadlineAwareness?: boolean;
   enableFragmentationPrevention?: boolean;
+  weeklyRhythms?: WeeklyRhythm[]; // User's energy/focus preferences
 }
 
 // Scheduling intelligence weights
@@ -127,6 +129,12 @@ export class SchedulingService {
         if (options.enableFragmentationPrevention) {
           const fragScore = this.calculateFragmentationScore(slot, durationMinutes);
           totalScore += fragScore * (SCHEDULING_WEIGHTS.FRAGMENTATION / 100);
+        }
+
+        // 5. WEEKLY RHYTHM BOOST (0-30 points bonus)
+        if (options.weeklyRhythms && options.weeklyRhythms.length > 0) {
+          const rhythmBoost = this.calculateRhythmScore(slot.start, task.focus_mode ?? null, options.weeklyRhythms);
+          totalScore += rhythmBoost * 0.3; // Up to 30 points bonus
         }
 
         return { ...slot, score: totalScore };
@@ -275,6 +283,60 @@ export class SchedulingService {
     
     // Creates awkward 15-30 min gap
     return 60;
+  }
+
+  private static calculateRhythmScore(
+    slotStart: Date,
+    taskFocusMode: FocusMode | null,
+    rhythms: WeeklyRhythm[]
+  ): number {
+    const dayOfWeek = slotStart.getDay();
+    const hour = slotStart.getHours();
+    
+    // Determine time block from hour
+    let timeBlock: 'morning' | 'afternoon' | 'evening';
+    if (hour >= 6 && hour < 12) {
+      timeBlock = 'morning';
+    } else if (hour >= 12 && hour < 18) {
+      timeBlock = 'afternoon';
+    } else {
+      timeBlock = 'evening';
+    }
+
+    // Find matching rhythm
+    const rhythm = rhythms.find(r => r.day_of_week === dayOfWeek && r.time_block === timeBlock);
+    
+    if (!rhythm) {
+      return 50; // No preference = neutral
+    }
+
+    // Energy score (0-40 points)
+    const energyScores = { high: 100, medium: 70, low: 40 };
+    const energyScore = energyScores[rhythm.energy_level] || 70;
+
+    // Focus mode alignment (0-60 points)
+    let focusScore = 50;
+    if (taskFocusMode) {
+      // Perfect match
+      if (taskFocusMode === rhythm.focus_mode) {
+        focusScore = 100;
+      }
+      // Compatible matches
+      else if (
+        (taskFocusMode === 'deep' && rhythm.focus_mode === 'planning') ||
+        (taskFocusMode === 'planning' && rhythm.focus_mode === 'deep') ||
+        (taskFocusMode === 'quick' && rhythm.focus_mode === 'admin') ||
+        (taskFocusMode === 'admin' && rhythm.focus_mode === 'quick')
+      ) {
+        focusScore = 70;
+      }
+      // Mismatch
+      else {
+        focusScore = 30;
+      }
+    }
+
+    return (energyScore * 0.4) + (focusScore * 0.6);
   }
 
   private static selectOptimalSlot(
