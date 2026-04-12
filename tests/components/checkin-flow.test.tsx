@@ -269,9 +269,9 @@ describe("CheckinFlow — priority step", () => {
     await waitFor(() => {}); // wait for data
 
     await user.click(screen.getByRole("button", { name: /Let's go/i }));
-    await waitFor(() => screen.getByText(/pick from your 1 active task/i));
+    await waitFor(() => screen.getByText(/Pick from/i));
 
-    await user.click(screen.getByText(/pick from your 1 active task/i));
+    await user.click(screen.getByText(/Pick from/i));
     await waitFor(() => screen.getByText("Write tests"));
     await user.click(screen.getByText("Write tests"));
 
@@ -284,26 +284,26 @@ describe("CheckinFlow — priority step", () => {
   });
 });
 
-describe("CheckinFlow — context step", () => {
-  async function goToContextStep() {
+describe("CheckinFlow — daily intent step", () => {
+  async function goToDailyIntentStep() {
     const user = userEvent.setup();
     render(<CheckinFlow />);
     await user.click(screen.getByRole("button", { name: /Let's go/i }));
     await waitFor(() => screen.getByPlaceholderText(/Be specific/i));
     await user.type(screen.getByPlaceholderText(/Be specific/i), "Top priority");
     await user.click(screen.getByRole("button", { name: /Next/i }));
-    await waitFor(() => screen.getByPlaceholderText(/Optional — what's on your mind/i));
+    await waitFor(() => screen.getByText(/Daily Intent/i));
     return user;
   }
 
-  it("shows context question", async () => {
-    await goToContextStep();
+  it("shows daily intent step after priority", async () => {
+    await goToDailyIntentStep();
 
-    expect(screen.getByText(/Anything that might get in the way/i)).toBeInTheDocument();
+    expect(screen.getByText(/Daily Intent/i)).toBeInTheDocument();
   });
 
   it("has Back button that returns to priority step", async () => {
-    const user = await goToContextStep();
+    const user = await goToDailyIntentStep();
 
     await user.click(screen.getByRole("button", { name: /Back/i }));
 
@@ -313,7 +313,7 @@ describe("CheckinFlow — context step", () => {
   });
 
   it("advances to energy step", async () => {
-    const user = await goToContextStep();
+    const user = await goToDailyIntentStep();
 
     await user.click(screen.getByRole("button", { name: /Next/i }));
 
@@ -331,7 +331,7 @@ describe("CheckinFlow — energy step", () => {
     await waitFor(() => screen.getByPlaceholderText(/Be specific/i));
     await user.type(screen.getByPlaceholderText(/Be specific/i), "Top priority");
     await user.click(screen.getByRole("button", { name: /Next/i }));
-    await waitFor(() => screen.getByPlaceholderText(/Optional/i));
+    await waitFor(() => screen.getByText(/Daily Intent/i));
     await user.click(screen.getByRole("button", { name: /Next/i }));
     await waitFor(() => screen.getByText(/Energy level right now/i));
     return user;
