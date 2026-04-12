@@ -429,7 +429,9 @@ describe("CheckinFlow — done step", () => {
     await waitFor(() => screen.getByPlaceholderText(/Be specific/i));
     await user.type(screen.getByPlaceholderText(/Be specific/i), "My priority");
     await user.click(screen.getByRole("button", { name: /Next/i }));
-    await waitFor(() => screen.getByPlaceholderText(/Optional/i));
+    await waitFor(() => screen.getByText(/Daily Intent/i));
+    await user.click(screen.getByRole("button", { name: /Next/i }));
+    await waitFor(() => screen.getByText(/Anything that might get in the way/i));
     await user.click(screen.getByRole("button", { name: /Next/i }));
     await waitFor(() => screen.getByText(/Energy level/i));
     await user.click(screen.getByRole("button", { name: /Save check-in/i }));
