@@ -2,17 +2,18 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Task, SchedulingMode, FocusMode } from "@/types";
+import { Task, SchedulingMode, FocusMode, RecurrenceType } from "@/types";
 import { createTask, updateTask } from "@/lib/tasks";
 import { useAuth } from "@/lib/auth-context";
 import PrioritySelector from "./PrioritySelector";
 import SchedulingModeSelector from "./SchedulingModeSelector";
 import ProjectSelector from "./ProjectSelector";
 import FocusModeSelector from "./FocusModeSelector";
+import RecurrenceSelector from "./RecurrenceSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Clock, Calendar, Lock, Unlock, Loader2 } from "lucide-react";
+import { Plus, Clock, Calendar, Lock, Unlock, Loader2, Repeat } from "lucide-react";
 import { toast } from "sonner";
 
 interface TaskFormProps {
@@ -55,6 +56,20 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
       : ""
   );
   const [locked, setLocked] = useState(initialData?.locked || false);
+  
+  // Recurrence state
+  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType | null>(
+    (initialData as Task & { recurrence_type?: RecurrenceType | null })?.recurrence_type || null
+  );
+  const [recurrenceInterval, setRecurrenceInterval] = useState(
+    initialData?.recurrence_interval || 1
+  );
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string | null>(
+    initialData?.recurrence_end_date || null
+  );
+  const [recurrenceWeekdays, setRecurrenceWeekdays] = useState<number[] | null>(
+    initialData?.recurrence_weekdays || null
+  );
 
   const isEditing = !!initialData?.id;
 
@@ -94,6 +109,14 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         status: "active" as const,
         notes: null,
         image_url: null,
+        // Recurrence fields
+        recurrence_type: recurrenceType,
+        recurrence_interval: recurrenceInterval,
+        recurrence_end_date: recurrenceEndDate,
+        recurrence_weekdays: recurrenceWeekdays,
+        is_recurrence_template: recurrenceType !== null,
+        parent_task_id: null,
+        skipped_dates: null,
       };
 
       let result: Task | null;
@@ -133,6 +156,10 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
     setEndTime("");
     setDueDate("");
     setLocked(false);
+    setRecurrenceType(null);
+    setRecurrenceInterval(1);
+    setRecurrenceEndDate(null);
+    setRecurrenceWeekdays(null);
   };
 
   return (
@@ -299,6 +326,32 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         <span className="text-xs text-muted-foreground">
           {locked ? "Won't be auto-rescheduled" : "Can be auto-rescheduled"}
         </span>
+      </div>
+
+      {/* Recurrence */}
+      <div className="space-y-1.5">
+        <Label className="flex items-center gap-2">
+          <Repeat size={14} className="text-muted-foreground" />
+          Recurrence
+        </Label>
+        <RecurrenceSelector
+          recurrenceType={recurrenceType}
+          recurrenceInterval={recurrenceInterval}
+          recurrenceEndDate={recurrenceEndDate}
+          recurrenceWeekdays={recurrenceWeekdays}
+          onChange={({ recurrence_type, recurrence_interval, recurrence_end_date, recurrence_weekdays }) => {
+            setRecurrenceType(recurrence_type);
+            setRecurrenceInterval(recurrence_interval);
+            setRecurrenceEndDate(recurrence_end_date);
+            setRecurrenceWeekdays(recurrence_weekdays);
+          }}
+          disabled={loading}
+        />
+        {recurrenceType && (
+          <p className="text-xs text-muted-foreground">
+            This task will automatically create the next instance when completed.
+          </p>
+        )}
       </div>
 
       {/* Actions */}

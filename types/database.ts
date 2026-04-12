@@ -414,6 +414,13 @@ export type Database = {
           updated_at: string | null
           user_id: string
           focus_mode: string | null
+          recurrence_type: string | null
+          recurrence_interval: number | null
+          recurrence_end_date: string | null
+          recurrence_weekdays: number[] | null
+          parent_task_id: string | null
+          skipped_dates: string[] | null
+          is_recurrence_template: boolean | null
         }
         Insert: {
           created_at?: string | null
@@ -433,6 +440,13 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           focus_mode?: string | null
+          recurrence_type?: string | null
+          recurrence_interval?: number | null
+          recurrence_end_date?: string | null
+          recurrence_weekdays?: number[] | null
+          parent_task_id?: string | null
+          skipped_dates?: string[] | null
+          is_recurrence_template?: boolean | null
         }
         Update: {
           created_at?: string | null
@@ -452,6 +466,13 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           focus_mode?: string | null
+          recurrence_type?: string | null
+          recurrence_interval?: number | null
+          recurrence_end_date?: string | null
+          recurrence_weekdays?: number[] | null
+          parent_task_id?: string | null
+          skipped_dates?: string[] | null
+          is_recurrence_template?: boolean | null
         }
         Relationships: [
           {
