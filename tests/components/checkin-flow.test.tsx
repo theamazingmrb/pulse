@@ -312,13 +312,13 @@ describe("CheckinFlow — daily intent step", () => {
     });
   });
 
-  it("advances to energy step", async () => {
+  it("advances to context step", async () => {
     const user = await goToDailyIntentStep();
 
     await user.click(screen.getByRole("button", { name: /Next/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Energy level right now/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Optional/i)).toBeInTheDocument();
     });
   });
 });
@@ -332,6 +332,8 @@ describe("CheckinFlow — energy step", () => {
     await user.type(screen.getByPlaceholderText(/Be specific/i), "Top priority");
     await user.click(screen.getByRole("button", { name: /Next/i }));
     await waitFor(() => screen.getByText(/Daily Intent/i));
+    await user.click(screen.getByRole("button", { name: /Next/i }));
+    await waitFor(() => screen.getByPlaceholderText(/Optional/i));
     await user.click(screen.getByRole("button", { name: /Next/i }));
     await waitFor(() => screen.getByText(/Energy level right now/i));
     return user;
@@ -383,6 +385,8 @@ describe("CheckinFlow — done step", () => {
     await user.click(screen.getByRole("button", { name: /Let's go/i }));
     await waitFor(() => screen.getByPlaceholderText(/Be specific/i));
     await user.type(screen.getByPlaceholderText(/Be specific/i), "Finish the report");
+    await user.click(screen.getByRole("button", { name: /Next/i }));
+    await waitFor(() => screen.getByText(/Daily Intent/i));
     await user.click(screen.getByRole("button", { name: /Next/i }));
     await waitFor(() => screen.getByPlaceholderText(/Optional/i));
     await user.click(screen.getByRole("button", { name: /Next/i }));
