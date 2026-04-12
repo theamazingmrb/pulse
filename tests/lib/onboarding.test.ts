@@ -6,8 +6,8 @@ import {
 } from "@/lib/onboarding";
 
 describe("ONBOARDING_STEPS", () => {
-  it("has 6 steps", () => {
-    expect(ONBOARDING_STEPS).toHaveLength(6);
+  it("has 7 steps", () => {
+    expect(ONBOARDING_STEPS).toHaveLength(7);
   });
 
   it("starts with 'welcome'", () => {
@@ -18,8 +18,9 @@ describe("ONBOARDING_STEPS", () => {
     expect(ONBOARDING_STEPS[ONBOARDING_STEPS.length - 1]).toBe("complete");
   });
 
-  it("contains 'projects', 'tasks', 'journal', 'playlist' in order", () => {
+  it("contains 'north-star', 'projects', 'tasks', 'journal', 'playlist' in order", () => {
     const steps = [...ONBOARDING_STEPS];
+    expect(steps.indexOf("north-star")).toBeLessThan(steps.indexOf("projects"));
     expect(steps.indexOf("projects")).toBeLessThan(steps.indexOf("tasks"));
     expect(steps.indexOf("tasks")).toBeLessThan(steps.indexOf("journal"));
     expect(steps.indexOf("journal")).toBeLessThan(steps.indexOf("playlist"));
@@ -69,20 +70,20 @@ describe("getOnboardingProgress", () => {
     expect(getOnboardingProgress([...ONBOARDING_STEPS])).toBe(100);
   });
 
-  it("returns ~16.67 for 1 of 6 steps", () => {
-    expect(getOnboardingProgress(["welcome"])).toBeCloseTo(100 / 6, 1);
+  it("returns ~14.29 for 1 of 7 steps", () => {
+    expect(getOnboardingProgress(["welcome"])).toBeCloseTo(100 / 7, 1);
   });
 
-  it("returns 50 for 3 of 6 steps", () => {
-    expect(getOnboardingProgress(["welcome", "projects", "tasks"])).toBeCloseTo(
-      50,
+  it("returns ~42.86 for 3 of 7 steps", () => {
+    expect(getOnboardingProgress(["welcome", "north-star", "projects"])).toBeCloseTo(
+      (3 / 7) * 100,
       1
     );
   });
 
-  it("returns ~83.33 for 5 of 6 steps", () => {
+  it("returns ~71.43 for 5 of 7 steps", () => {
     expect(
-      getOnboardingProgress(["welcome", "projects", "tasks", "journal", "playlist"])
-    ).toBeCloseTo((5 / 6) * 100, 1);
+      getOnboardingProgress(["welcome", "north-star", "projects", "tasks", "journal"])
+    ).toBeCloseTo((5 / 7) * 100, 1);
   });
 });

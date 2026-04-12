@@ -15,6 +15,9 @@ vi.mock("@/lib/auth-context", () => ({
 vi.mock("@/lib/north-star", () => ({
   getNorthStar: vi.fn().mockResolvedValue(null),
   upsertNorthStar: vi.fn().mockResolvedValue({ id: "ns1", user_id: "u1", content: "Test" }),
+  MAX_CONTENT_LENGTH: 500,
+  NORTH_STAR_PROMPTS: [],
+  truncateNorthStar: vi.fn((content: string) => content),
 }));
 
 // Minimal step set for most tests
