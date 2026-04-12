@@ -318,8 +318,8 @@ describe("CheckinFlow — daily intent step", () => {
     await user.click(screen.getByRole("button", { name: /Next/i }));
 
     await waitFor(() => {
-      // Context step - look for the context question or skip button
-      expect(screen.getByText(/what.*on your mind/i)).toBeInTheDocument();
+      // Context step shows the question text
+      expect(screen.getByText(/Anything that might get in the way/i)).toBeInTheDocument();
     });
   });
 });
