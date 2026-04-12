@@ -39,6 +39,16 @@ vi.mock("@/lib/warmap", () => ({
   linkTaskToWarMapItem: (...args: unknown[]) => mockLinkTaskToWarMapItem(...args),
 }));
 
+vi.mock("@/lib/north-star", () => ({
+  getNorthStar: vi.fn().mockResolvedValue(null),
+  truncateNorthStar: vi.fn((content: string) => content),
+  MAX_CONTENT_LENGTH: 500,
+}));
+
+vi.mock("@/lib/core-values", () => ({
+  getCoreValues: vi.fn().mockResolvedValue([]),
+}));
+
 const mockSupabaseInsert = vi.fn();
 vi.mock("@/lib/supabase", () => ({
   supabase: {
