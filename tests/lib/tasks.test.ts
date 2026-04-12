@@ -303,12 +303,16 @@ describe("deleteTask", () => {
 
 describe("completeTask / uncompleteTask", () => {
   it("completeTask sets status to done", async () => {
-    const chain = makeChain({ data: { ...MOCK_TASK, status: "done", projects: null }, error: null });
-    mockFrom.mockReturnValueOnce(chain);
+    // First call: getTask to fetch the task
+    const getChain = makeChain({ data: { ...MOCK_TASK, projects: null }, error: null });
+    // Second call: updateTask to set status
+    const updateChain = makeChain({ data: { ...MOCK_TASK, status: "done", projects: null }, error: null });
+    
+    mockFrom.mockReturnValueOnce(getChain).mockReturnValueOnce(updateChain);
 
     const result = await completeTask("t1");
 
-    expect(chain.update).toHaveBeenCalledWith(expect.objectContaining({ status: "done" }));
+    expect(updateChain.update).toHaveBeenCalledWith(expect.objectContaining({ status: "done" }));
     expect(result?.status).toBe("done");
   });
 
