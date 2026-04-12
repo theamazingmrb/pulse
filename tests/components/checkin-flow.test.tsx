@@ -172,9 +172,9 @@ describe("CheckinFlow — priority step", () => {
     await user.type(textarea, "Finish report");
     await user.click(screen.getByRole("button", { name: /Next/i }));
 
+    // Now goes to Daily Intent step first
     await waitFor(() => {
-      // Should go to context step (not warmap)
-      expect(screen.getByPlaceholderText(/Optional — what's on your mind/i)).toBeInTheDocument();
+      expect(screen.getByText(/Daily Intent/i)).toBeInTheDocument();
     });
   });
 
@@ -199,8 +199,9 @@ describe("CheckinFlow — priority step", () => {
     await user.type(textarea, "Work out");
     await user.click(screen.getByRole("button", { name: /Next/i }));
 
+    // After priority, goes to Daily Intent
     await waitFor(() => {
-      expect(screen.getByText(/Link to your WarMap/i)).toBeInTheDocument();
+      expect(screen.getByText(/Daily Intent/i)).toBeInTheDocument();
     });
   });
 
@@ -233,9 +234,10 @@ describe("CheckinFlow — priority step", () => {
     await waitFor(() => {}); // wait for tasks to load
 
     await user.click(screen.getByRole("button", { name: /Let's go/i }));
-    await waitFor(() => screen.getByText(/pick from your 1 active task/i));
+    // Now shows "Pick from tasks" button instead of text
+    await waitFor(() => screen.getByText(/Pick from/i));
 
-    expect(screen.getByText(/pick from your 1 active task/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pick from/i)).toBeInTheDocument();
   });
 
   it("selecting a task from picker populates top priority", async () => {

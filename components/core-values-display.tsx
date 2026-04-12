@@ -29,7 +29,7 @@ export function CoreValuesDisplay({ compact = false }: CoreValuesDisplayProps) {
     }
   }, [user]);
 
-  if (isLoading || values.length === 0) {
+  if (isLoading || !values || values.length === 0) {
     // Don't show anything if no values set
     return null;
   }
