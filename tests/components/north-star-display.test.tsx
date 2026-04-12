@@ -24,6 +24,8 @@ import { getNorthStar } from "@/lib/north-star";
 beforeEach(() => {
   vi.clearAllMocks();
   (getNorthStar as ReturnType<typeof vi.fn>).mockReset();
+  // Default: return a north star
+  (getNorthStar as ReturnType<typeof vi.fn>).mockResolvedValue(MOCK_NORTH_STAR);
 });
 
 const MOCK_NORTH_STAR = {

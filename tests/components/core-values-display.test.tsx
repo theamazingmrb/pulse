@@ -18,6 +18,8 @@ const mockGetCoreValues = getCoreValues as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default: return core values
+  mockGetCoreValues.mockResolvedValue(MOCK_CORE_VALUES);
 });
 
 const MOCK_CORE_VALUES = [

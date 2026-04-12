@@ -22,6 +22,8 @@ const mockGetLatestDailyIntent = getLatestDailyIntent as ReturnType<typeof vi.fn
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default: return an intent
+  mockGetLatestDailyIntent.mockResolvedValue(MOCK_INTENT);
 });
 
 const MOCK_INTENT = {
