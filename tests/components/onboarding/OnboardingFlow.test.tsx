@@ -260,9 +260,20 @@ describe("OnboardingFlow", () => {
           steps={DEFAULT_ONBOARDING_STEPS}
         />
       );
-      // Click Next through all but the last step
+      // Click through all steps
       for (let i = 0; i < DEFAULT_ONBOARDING_STEPS.length - 1; i++) {
-        await user.click(screen.getByRole("button", { name: /next/i }));
+        // North Star step uses "Save & Continue" or "Skip for now"
+        const saveButton = screen.queryByRole("button", { name: /Save & Continue/i });
+        const nextButton = screen.queryByRole("button", { name: /next/i });
+        const skipButton = screen.queryByRole("button", { name: /skip/i });
+        
+        if (saveButton && !saveButton.hasAttribute('disabled')) {
+          await user.click(saveButton);
+        } else if (nextButton) {
+          await user.click(nextButton);
+        } else if (skipButton) {
+          await user.click(skipButton);
+        }
       }
       // Last step shows "Get Started"
       await user.click(screen.getByRole("button", { name: /get started/i }));
