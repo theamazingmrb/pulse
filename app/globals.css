@@ -51,6 +51,9 @@
   html, body { @apply overflow-x-hidden; }
   body { @apply bg-background text-foreground; }
   
+  /* Prevent horizontal overflow on all containers */
+  #root, main, div { overflow-x: clip; }
+  
   /* Mobile typography - prevent iOS zoom on inputs */
   input, textarea, select {
     font-size: 16px;
@@ -108,6 +111,12 @@
   /* Prevent horizontal overflow */
   .overflow-x-auto, .overflow-x-scroll {
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure cards don't overflow */
+  .card, [class*="Card"], [data-card] {
+    max-width: 100%;
+    overflow-wrap: break-word;
   }
   
   /* Better text rendering */

@@ -131,13 +131,13 @@ export default function Nav() {
       </aside>
 
       {/* ── Mobile bottom tab bar ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card/95 backdrop-blur-md flex items-center px-1 safe-area-inset-bottom shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-20 border-t border-border bg-card/95 backdrop-blur-md flex items-center px-1 safe-area-inset-bottom shadow-lg">
         {mobilePrimaryLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[44px] py-2 px-1 transition-all touch-feedback",
+              "flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] py-2.5 px-1 transition-all touch-feedback",
               path === href
                 ? "text-primary"
                 : "text-muted-foreground active:bg-secondary/50 active:scale-95"
@@ -152,7 +152,7 @@ export default function Nav() {
         <button
           onClick={() => setShowOverflow(!showOverflow)}
           className={cn(
-            "flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[44px] py-2 px-1 transition-all touch-feedback",
+            "flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] py-2.5 px-1 transition-all touch-feedback",
             showOverflow || isActiveOverflowItem
               ? "text-primary"
               : "text-muted-foreground active:bg-secondary/50 active:scale-95"
@@ -167,7 +167,7 @@ export default function Nav() {
       {showOverflow && (
         <div className="md:hidden fixed inset-0 z-40 bg-background/90 backdrop-blur-md" onClick={() => setShowOverflow(false)}>
           <div 
-            className="absolute bottom-16 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-4 safe-area-inset-bottom shadow-2xl animate-in slide-in-from-bottom duration-200"
+            className="absolute bottom-20 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-4 safe-area-inset-bottom shadow-2xl animate-in slide-in-from-bottom duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="grid grid-cols-3 gap-3">

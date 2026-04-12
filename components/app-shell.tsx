@@ -22,7 +22,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         className={
           showNav
             ? // App pages: sidebar offset on desktop, bottom-nav padding on mobile
-              `flex-1 p-4 md:p-8 pb-24 md:pb-8 flex justify-center transition-all duration-300 ${
+              `flex-1 p-4 md:p-8 pb-28 md:pb-8 flex justify-center overflow-x-hidden transition-all duration-300 ${
                 collapsed ? "md:ml-16" : "md:ml-56"
               }`
             : // Auth / landing pages: full width, no extra padding (each page controls its own layout)
