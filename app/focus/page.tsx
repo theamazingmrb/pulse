@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useSpotify } from "@/lib/spotify-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Task, FocusSession, FocusTimerPreset, SpotifyTrack } from "@/types";
+import { Task, FocusSession, FocusTimerPreset, SpotifyTrack, FocusMode, FOCUS_MODE_CONFIG } from "@/types";
 import { todayISO, formatTime } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -416,24 +416,41 @@ export default function FocusTimerPage() {
                   >
                     No task (general focus)
                   </button>
-                  {tasks.map((task) => (
-                    <button
-                      key={task.id}
-                      onClick={() => setSelectedTaskId(task.id)}
-                      className={`w-full text-left p-2 rounded-lg text-sm transition-colors min-w-0 ${
-                        selectedTaskId === task.id
-                          ? "bg-primary/10 border border-primary/30"
-                          : "hover:bg-secondary border border-transparent"
-                      }`}
-                    >
-                      <div className="font-medium truncate">{task.title}</div>
-                      {task.project_id && task.project && (
-                        <div className="text-xs text-muted-foreground truncate">
-                          {task.project.name}
+                  {tasks.map((task) => {
+                    const taskFocusMode = task.focus_mode as FocusMode | null;
+                    return (
+                      <button
+                        key={task.id}
+                        onClick={() => setSelectedTaskId(task.id)}
+                        className={`w-full text-left p-2 rounded-lg text-sm transition-colors min-w-0 ${
+                          selectedTaskId === task.id
+                            ? "bg-primary/10 border border-primary/30"
+                            : "hover:bg-secondary border border-transparent"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium truncate flex-1">{task.title}</div>
+                          {taskFocusMode && (
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded-full border flex-shrink-0"
+                              style={{
+                                backgroundColor: `${FOCUS_MODE_CONFIG[taskFocusMode]?.color}15`,
+                                borderColor: FOCUS_MODE_CONFIG[taskFocusMode]?.color,
+                                color: FOCUS_MODE_CONFIG[taskFocusMode]?.color,
+                              }}
+                            >
+                              {FOCUS_MODE_CONFIG[taskFocusMode]?.label}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </button>
-                  ))}
+                        {task.project_id && task.project && (
+                          <div className="text-xs text-muted-foreground truncate mt-0.5">
+                            {task.project.name}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

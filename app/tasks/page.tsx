@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Task, TaskStatus } from "@/types";
+import { Task, TaskStatus, FocusMode, FOCUS_MODE_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { Plus, Check, Trash2, Clock, Zap, Lock, ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ export default function TasksPage() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filter, setFilter] = useState<TaskStatus | "all">("active");
+  const [focusFilter, setFocusFilter] = useState<FocusMode | "all">("all");
   const [showForm, setShowForm] = useState(false);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +73,11 @@ export default function TasksPage() {
     }
   }
 
-  const filtered = filter === "all" ? tasks : tasks.filter((t) => t.status === filter);
+  const filtered = tasks.filter((t) => {
+    const statusMatch = filter === "all" || t.status === filter;
+    const focusMatch = focusFilter === "all" || t.focus_mode === focusFilter;
+    return statusMatch && focusMatch;
+  });
 
   const formatDuration = (minutes: number) => {
     if (minutes >= 60) {
@@ -140,6 +145,44 @@ export default function TasksPage() {
             <span className="ml-1.5 opacity-60">
               {tab.value === "all" ? tasks.length : tasks.filter((t) => t.status === tab.value).length}
             </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Focus Mode filter */}
+      <div className="flex gap-1 mb-5 flex-wrap">
+        <span className="text-xs text-muted-foreground mr-2">Focus:</span>
+        <button
+          onClick={() => setFocusFilter("all")}
+          className={cn(
+            "px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors",
+            focusFilter === "all"
+              ? "bg-secondary text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          All
+        </button>
+        {Object.entries(FOCUS_MODE_CONFIG).map(([mode, cfg]) => (
+          <button
+            key={mode}
+            onClick={() => setFocusFilter(mode as FocusMode)}
+            className={cn(
+              "px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1",
+              focusFilter === mode
+                ? "text-white"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            style={{
+              backgroundColor: focusFilter === mode ? cfg.color : "transparent",
+              border: `1px solid ${focusFilter === mode ? cfg.color : "var(--border)"}`,
+            }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: focusFilter === mode ? "white" : cfg.color }}
+            />
+            {cfg.label}
           </button>
         ))}
       </div>
@@ -232,6 +275,25 @@ export default function TasksPage() {
                       }}
                     >
                       {task.project.name}
+                    </span>
+                  )}
+
+                  {/* Focus Mode badge */}
+                  {task.focus_mode && (
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full border flex-shrink-0 flex items-center gap-1"
+                      style={{
+                        backgroundColor: `${FOCUS_MODE_CONFIG[task.focus_mode as FocusMode]?.color}15`,
+                        borderColor: FOCUS_MODE_CONFIG[task.focus_mode as FocusMode]?.color,
+                        color: FOCUS_MODE_CONFIG[task.focus_mode as FocusMode]?.color,
+                      }}
+                      title={FOCUS_MODE_CONFIG[task.focus_mode as FocusMode]?.description}
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: FOCUS_MODE_CONFIG[task.focus_mode as FocusMode]?.color }}
+                      />
+                      {FOCUS_MODE_CONFIG[task.focus_mode as FocusMode]?.label}
                     </span>
                   )}
 

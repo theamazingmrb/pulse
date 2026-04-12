@@ -5,7 +5,7 @@ import { getGreeting, formatTime, todayISO } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import JournalCard from "@/components/journal-card";
-import { Compass, Plus, ArrowRight } from "lucide-react";
+import { Compass, Plus, ArrowRight, Sparkles } from "lucide-react";
 import { Journal, Checkin, Task } from "@/types";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
@@ -24,6 +24,9 @@ import {
   getCalendarBusyBlocks,
   syncTaskToCalendar,
 } from "@/lib/google-calendar";
+import { getNorthStar } from "@/lib/north-star";
+import { getCoreValues } from "@/lib/core-values";
+import { CoreValue } from "@/types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -36,6 +39,8 @@ export default function DashboardPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [hasProjects, setHasProjects] = useState(false);
   const [hasReflections, setHasReflections] = useState(false);
+  const [northStar, setNorthStar] = useState<string | null>(null);
+  const [coreValues, setCoreValues] = useState<CoreValue[]>([]);
 
   useEffect(() => {
     setGoogleConnected(isGoogleConnected());
@@ -59,6 +64,8 @@ export default function DashboardPage() {
       { data: projectsData },
       { data: reflectionsData },
       scheduledForToday,
+      northStarData,
+      coreValuesData,
     ] = await Promise.all([
       supabase
         .from("checkins")
@@ -91,6 +98,8 @@ export default function DashboardPage() {
         .eq("user_id", userId)
         .limit(1),
       getScheduledTasksForDay(userId, new Date()),
+      getNorthStar(userId),
+      getCoreValues(userId),
     ]);
 
     setCheckins(checkinsData || []);
@@ -99,6 +108,8 @@ export default function DashboardPage() {
     setScheduledTasks(scheduledForToday);
     setHasProjects((projectsData?.length || 0) > 0);
     setHasReflections((reflectionsData?.length || 0) > 0);
+    setNorthStar(northStarData?.content || null);
+    setCoreValues(coreValuesData || []);
     setDataLoading(false);
   }
 
@@ -176,6 +187,44 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold mb-1">{getGreeting()}</h1>
             <p className="text-muted-foreground text-sm">What matters most right now?</p>
           </div>
+
+          {/* North Star & Core Values */}
+          {(northStar || coreValues.length > 0) && (
+            <div className="mb-6 space-y-3">
+              {northStar && (
+                <Card className="bg-gradient-to-br from-amber-500/5 to-amber-500/10 border-amber-500/20">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-3">
+                      <Compass size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">North Star</p>
+                        <p className="text-sm leading-relaxed">{northStar}</p>
+                      </div>
+                      <Link href="/settings/intention">
+                        <Button variant="ghost" size="sm" className="text-xs">Edit</Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              {coreValues.length > 0 && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Sparkles size={14} className="text-violet-500" />
+                  {coreValues.slice(0, 5).map((v) => (
+                    <span
+                      key={v.id}
+                      className="text-xs px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-300"
+                    >
+                      {v.value_text}
+                    </span>
+                  ))}
+                  <Link href="/settings/intention">
+                    <Button variant="ghost" size="sm" className="text-xs h-6 px-2">Edit</Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
 
           <QuickStartGuide
             hasProjects={hasProjects}

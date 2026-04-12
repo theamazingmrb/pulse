@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/lib/auth-context';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -17,8 +18,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bell, BellOff, Clock, ListTodo, Moon, Sun, Trash2, Loader2 } from 'lucide-react';
+import { Bell, BellOff, Clock, ListTodo, Moon, Sun, Trash2, Loader2, Compass, Sparkles, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { getNorthStar } from '@/lib/north-star';
+import { getCoreValues } from '@/lib/core-values';
 
 function SettingsPageContent() {
   const router = useRouter();
@@ -41,11 +44,33 @@ function SettingsPageContent() {
   const [localPrefs, setLocalPrefs] = useState(preferences);
   const [isSaving, setIsSaving] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  
+  // Intention & Values
+  const [northStar, setNorthStar] = useState<string | null>(null);
+  const [coreValuesCount, setCoreValuesCount] = useState(0);
 
   // Sync local prefs with hook prefs
   useEffect(() => {
     setLocalPrefs(preferences);
   }, [preferences]);
+  
+  // Load Intention data
+  useEffect(() => {
+    if (user) {
+      loadIntentionData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+  
+  async function loadIntentionData() {
+    if (!user) return;
+    const [ns, cv] = await Promise.all([
+      getNorthStar(user.id),
+      getCoreValues(user.id),
+    ]);
+    setNorthStar(ns?.content || null);
+    setCoreValuesCount(cv.length);
+  }
 
   // Redirect if not logged in
   useEffect(() => {
@@ -158,6 +183,43 @@ function SettingsPageContent() {
           Manage your notification preferences and account settings.
         </p>
       </div>
+
+      {/* Intention & Values */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Compass className="h-5 w-5 text-amber-500" />
+            Intention & Values
+          </CardTitle>
+          <CardDescription>
+            Your North Star and Core Values guide your decisions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link
+            href="/settings/intention"
+            className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Compass size={16} className="text-amber-500" />
+                <Sparkles size={16} className="text-violet-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">
+                  {northStar ? 'View & Edit' : 'Set Your Intentions'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {northStar 
+                    ? `${coreValuesCount} value${coreValuesCount !== 1 ? 's' : ''} set` 
+                    : 'Define your guiding principles'}
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </Link>
+        </CardContent>
+      </Card>
 
       {/* Notification Support Warning */}
       {!isSupported && (
