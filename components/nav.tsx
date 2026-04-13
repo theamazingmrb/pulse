@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X, Timer, Settings, BarChart3 } from "lucide-react";
+import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X, Timer, Settings, BarChart3, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSpotify } from "@/lib/spotify-context";
 import { useAuth } from "@/lib/auth-context";
@@ -17,6 +17,7 @@ const links = [
   { href: "/focus", label: "Focus", icon: Timer },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/projects", label: "Projects", icon: FolderOpen },
   { href: "/warmap", label: "WarMap", icon: Map },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/journal", label: "Journal", icon: BookOpen },
