@@ -212,7 +212,7 @@ export default function TaskForm({ initialData, defaultProjectId, onSuccess, onC
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What needs to be done?"
-            className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-muted-foreground/60"
+            className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/60"
             required
             autoFocus
           />
@@ -220,18 +220,18 @@ export default function TaskForm({ initialData, defaultProjectId, onSuccess, onC
       </div>
 
       {/* Quick settings row - chips */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 px-1">
         {/* Priority chips */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {priorities.map((p) => (
             <button
               key={p.level}
               type="button"
               onClick={() => setPriorityLevel(p.level)}
               className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all mx-0.5",
                 priorityLevel === p.level
-                  ? "ring-2 ring-offset-2 ring-offset-background scale-110"
+                  ? "ring-2 ring-offset-1 scale-110"
                   : "opacity-40 hover:opacity-70"
               )}
               style={{
@@ -312,7 +312,7 @@ export default function TaskForm({ initialData, defaultProjectId, onSuccess, onC
       </div>
 
       {/* Second row - project + scheduling mode + recurrence */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 px-1">
         {/* Project dropdown */}
         <div className="relative">
           <button
