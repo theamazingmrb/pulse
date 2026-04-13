@@ -9,13 +9,14 @@ function getSupabase(): SupabaseClient {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!url || !key) {
-    throw new Error("Missing Supabase environment variables");
+    throw new Error("Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY");
   }
   
   supabaseInstance = createClient(url, key);
   return supabaseInstance;
 }
 
+// Create a lazy proxy that only initializes when accessed
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     return Reflect.get(getSupabase(), prop);

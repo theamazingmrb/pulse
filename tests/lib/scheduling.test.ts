@@ -24,6 +24,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     start_time: null,
     end_time: null,
     locked: false,
+    focus_mode: null,
     ...overrides,
   };
 }

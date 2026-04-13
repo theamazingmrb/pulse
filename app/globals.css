@@ -8,6 +8,8 @@
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
     --border: 220 13% 88%;
     --input: 220 13% 88%;
     --primary: 250 80% 58%;
@@ -27,6 +29,8 @@
     --foreground: 213 31% 91%;
     --card: 222 47% 8%;
     --card-foreground: 213 31% 91%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 213 31% 91%;
     --border: 216 34% 14%;
     --input: 216 34% 14%;
     --primary: 250 80% 68%;
@@ -44,10 +48,94 @@
 
 @layer base {
   * { @apply border-border; }
+  html, body { @apply overflow-x-hidden; }
   body { @apply bg-background text-foreground; }
+  
+  /* Prevent horizontal overflow on all containers */
+  #root, main, div { overflow-x: clip; }
+  
+  /* Mobile typography - prevent iOS zoom on inputs */
+  input, textarea, select {
+    font-size: 16px;
+  }
+  
+  /* Touch-friendly defaults */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
 }
 
 /* Smooth scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 99px; }
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 768px) {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* iOS safe area support */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch feedback utilities */
+@layer utilities {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .touch-feedback {
+    @apply transition-transform active:scale-[0.97] active:opacity-80;
+  }
+  
+  .touch-feedback-light {
+    @apply transition-opacity active:opacity-70;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  /* Larger touch targets for interactive elements */
+  button:not(.touch-target-exempt),
+  a:not(.touch-target-exempt) {
+    min-height: 44px;
+  }
+  
+  /* Prevent horizontal overflow */
+  .overflow-x-auto, .overflow-x-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure cards don't overflow */
+  .card, [class*="Card"], [data-card] {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+  
+  /* Better text rendering */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Focus ring improvements */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+}
+
+/* PWA fullscreen mode */
+@media (display-mode: standalone) {
+  body {
+    /* Add extra safe area for notch/home indicator */
+    padding-top: env(safe-area-inset-top);
+  }
+}

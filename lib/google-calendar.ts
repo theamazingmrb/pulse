@@ -177,6 +177,14 @@ export async function getCalendarBusyBlocks(date: Date): Promise<Task[]> {
         google_event_id: e.id,
         created_at: "",
         updated_at: "",
+        focus_mode: null,
+        recurrence_type: null,
+        recurrence_interval: 1,
+        recurrence_end_date: null,
+        recurrence_weekdays: null,
+        parent_task_id: null,
+        skipped_dates: null,
+        is_recurrence_template: false,
       }));
   } catch {
     return [];

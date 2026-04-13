@@ -17,6 +17,11 @@ export const REFLECTION_PROMPTS: Record<ReflectionType, ReflectionPrompt[]> = {
       placeholder: "What did I get done today? Big or small, write it down.",
     },
     {
+      key: "intent_check",
+      label: "🎯 Daily Intent Check",
+      placeholder: "Did you accomplish what you committed to today? What about what you said NO to?",
+    },
+    {
       key: "gratitude",
       label: "🙏 Gratitude",
       placeholder: "What am I grateful for right now?",
@@ -47,6 +52,11 @@ export const REFLECTION_PROMPTS: Record<ReflectionType, ReflectionPrompt[]> = {
       key: "warmap_progress",
       label: "🗺️ WarMap progress",
       placeholder: "How did I move toward my year goals? Which items progressed?",
+    },
+    {
+      key: "values_alignment",
+      label: "❤️ Values alignment",
+      placeholder: "Did your actions this week align with what matters most? Where did you live your values, and where did you drift?",
     },
     {
       key: "next_week",
@@ -210,7 +220,8 @@ export async function saveReflection(
   periodStart: string,
   sections: Record<string, string>,
   mood: string | null,
-  energyLevel: number | null
+  energyLevel: number | null,
+  accomplishedIntent: boolean | null = null
 ): Promise<Reflection | null> {
   const { data, error } = await supabase
     .from("reflections")
@@ -222,6 +233,7 @@ export async function saveReflection(
         sections,
         mood,
         energy_level: energyLevel,
+        accomplished_intent: accomplishedIntent,
       },
       { onConflict: "user_id,type,period_start" }
     )

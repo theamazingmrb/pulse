@@ -1,5 +1,5 @@
 "use client";
-import { Task } from "@/types";
+import { Task, FOCUS_MODE_CONFIG } from "@/types";
 import { PRIORITY_CONFIG } from "@/lib/tasks";
 import { formatTime } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,6 +100,14 @@ export default function TodaySchedule({
                         style={{ backgroundColor: config?.color ?? "#6B7280" }}
                       />
                       <span className="truncate flex-1">{task.title}</span>
+                      {task.focus_mode && FOCUS_MODE_CONFIG[task.focus_mode] && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full text-white flex-shrink-0"
+                          style={{ backgroundColor: FOCUS_MODE_CONFIG[task.focus_mode].color }}
+                        >
+                          {FOCUS_MODE_CONFIG[task.focus_mode].label}
+                        </span>
+                      )}
                       <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
                         {formatDuration(task.estimated_duration ?? 30)}
                       </span>

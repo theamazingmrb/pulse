@@ -11,6 +11,7 @@ export interface UserOnboarding {
 
 export const ONBOARDING_STEPS = [
   'welcome',
+  'north-star',
   'projects',
   'tasks', 
   'journal',

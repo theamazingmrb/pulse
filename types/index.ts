@@ -1,5 +1,36 @@
 export type TaskStatus = "active" | "waiting" | "someday" | "done";
 export type ReflectionType = "daily" | "weekly" | "monthly";
+export type FocusMode = "deep" | "quick" | "planning" | "admin";
+export type EnergyLevel = "high" | "medium" | "low";
+export type TimeBlock = "morning" | "afternoon" | "evening";
+export type RhythmPreset = "makers_schedule" | "night_owl" | "balanced";
+
+export const FOCUS_MODE_CONFIG: Record<FocusMode, { label: string; color: string; description: string; suggestion: string }> = {
+  deep: {
+    label: "Deep",
+    color: "#8B5CF6", // Purple
+    description: "Full creative attention",
+    suggestion: "Block 1-2 hours. Turn off notifications."
+  },
+  quick: {
+    label: "Quick",
+    color: "#22C55E", // Green
+    description: "Under 15 minutes",
+    suggestion: "Batch these together. Knock them out fast."
+  },
+  planning: {
+    label: "Planning",
+    color: "#3B82F6", // Blue
+    description: "Organizing & strategizing",
+    suggestion: "Good for morning energy or end-of-day review."
+  },
+  admin: {
+    label: "Admin",
+    color: "#6B7280", // Gray
+    description: "Logistical, repetitive tasks",
+    suggestion: "Save for low-energy periods."
+  }
+};
 
 export interface Reflection {
   id: string;
@@ -12,6 +43,7 @@ export interface Reflection {
   sections: Record<string, string>;
   mood: string | null;
   energy_level: number | null;
+  accomplished_intent: boolean | null;
 }
 
 export interface ReflectionStreak {
@@ -40,6 +72,8 @@ export interface Project {
   banner_url: string | null;
 }
 
+export type RecurrenceType = "daily" | "weekly" | "monthly" | "yearly" | "custom";
+
 export interface Task {
   id: string;
   created_at: string;
@@ -61,6 +95,16 @@ export interface Task {
   end_time: string | null;
   locked: boolean;
   google_event_id?: string | null;
+  // Focus mode (optional)
+  focus_mode: FocusMode | null;
+  // Recurrence fields
+  recurrence_type: RecurrenceType | null;
+  recurrence_interval: number;
+  recurrence_end_date: string | null;
+  recurrence_weekdays: number[] | null;
+  parent_task_id: string | null;
+  skipped_dates: string[] | null;
+  is_recurrence_template: boolean;
 }
 
 export interface Profile {
@@ -115,6 +159,8 @@ export interface Checkin {
   other_priorities: string[] | null;
   context: string | null;
   energy_level: number | null;
+  daily_intent: string | null;
+  say_no_to: string | null;
 }
 
 export interface SpotifyPlaylist {
@@ -155,6 +201,7 @@ export interface WarMapItem {
   status: "active" | "completed" | "abandoned";
   target_date: string | null;
   sort_order: number;
+  north_star_alignment: string | null;
   tasks?: Task[];
 }
 
@@ -169,3 +216,79 @@ export const PROJECT_OPTIONS = [
 ] as const;
 
 export type LegacyProject = (typeof PROJECT_OPTIONS)[number];
+
+// Focus Session types
+export type FocusSessionStatus = "active" | "paused" | "completed" | "abandoned";
+
+export interface FocusSession {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  task_id: string | null;
+  duration: number; // planned duration in minutes
+  started_at: string;
+  completed_at: string | null;
+  status: FocusSessionStatus;
+  spotify_playlist_id: string | null;
+  spotify_playlist_name: string | null;
+  spotify_track_id: string | null;
+  spotify_track_name: string | null;
+  spotify_artist: string | null;
+  journal_id: string | null;
+  notes: string | null;
+  task?: Task | null;
+}
+
+export interface FocusTimerPreset {
+  label: string;
+  minutes: number;
+  description: string;
+}
+
+// North Star (Life Vision)
+export interface NorthStar {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  content: string;
+}
+
+// Core Values (What Matters Most)
+export interface CoreValue {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  value_text: string;
+  value_order: number;
+}
+
+// Weekly Rhythm (Energy & Focus Preferences)
+export interface WeeklyRhythm {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  day_of_week: number; // 0-6 (Sunday-Saturday)
+  time_block: TimeBlock;
+  energy_level: EnergyLevel;
+  focus_mode: FocusMode;
+  notes: string | null;
+}
+
+export const RHYTHM_PRESETS: Record<RhythmPreset, { name: string; description: string }> = {
+  makers_schedule: {
+    name: "Maker's Schedule",
+    description: "Mornings for deep work, afternoons for admin. Best for creators and builders."
+  },
+  night_owl: {
+    name: "Night Owl",
+    description: "Evening peak energy. Deep work happens after the world quiets down."
+  },
+  balanced: {
+    name: "Balanced",
+    description: "Mix of energy throughout the day. Flexible scheduling for varied work."
+  }
+};

@@ -26,6 +26,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     start_time: "2026-03-30T09:00:00Z",
     end_time: "2026-03-30T09:30:00Z",
     locked: false,
+    focus_mode: null,
     ...overrides,
   };
 }

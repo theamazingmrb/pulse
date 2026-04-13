@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays } from "lucide-react";
+import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X, Timer, Settings, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSpotify } from "@/lib/spotify-context";
 import { useAuth } from "@/lib/auth-context";
@@ -13,23 +14,35 @@ import Image from "next/image";
 const links = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/checkin", label: "Check-in", icon: Compass },
+  { href: "/focus", label: "Focus", icon: Timer },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/warmap", label: "WarMap", icon: Map },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/reflections", label: "Reflections", icon: Star },
   { href: "/playlist", label: "Playlist", icon: Music },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
+
+// Primary nav items shown on mobile (top 5)
+const mobilePrimaryLinks = links.slice(0, 5);
+// Settings always at the end of overflow
+const mobileOverflowLinks = links.slice(5, -1); // Exclude settings from grid
+const mobileSettingsLink = links[links.length - 1]; // Settings link
 
 export default function Nav() {
   const path = usePathname();
   const { currentTrack, isPlaying, playerReady, playTrack, pause } = useSpotify();
   const { user, signOut } = useAuth();
   const { collapsed, setCollapsed } = useSidebar();
+  const [showOverflow, setShowOverflow] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const isActiveOverflowItem = mobileOverflowLinks.some(link => link.href === path);
 
   return (
     <>
@@ -119,23 +132,87 @@ export default function Nav() {
       </aside>
 
       {/* ── Mobile bottom tab bar ── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card flex items-stretch">
-        {links.map(({ href, label, icon: Icon }) => (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-20 border-t border-border bg-card/95 backdrop-blur-md flex items-center px-1 safe-area-inset-bottom shadow-lg">
+        {mobilePrimaryLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
+              "flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] py-2.5 px-1 transition-all touch-feedback",
               path === href
                 ? "text-primary"
-                : "text-muted-foreground"
+                : "text-muted-foreground active:bg-secondary/50 active:scale-95"
             )}
           >
-            <Icon size={20} strokeWidth={path === href ? 2.5 : 1.75} />
-            {label}
+            <Icon size={24} strokeWidth={path === href ? 2.5 : 2} />
+            <span className="text-[10px] font-medium">{label}</span>
           </Link>
         ))}
-      </div>
+        
+        {/* More button */}
+        <button
+          onClick={() => setShowOverflow(!showOverflow)}
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] py-2.5 px-1 transition-all touch-feedback",
+            showOverflow || isActiveOverflowItem
+              ? "text-primary"
+              : "text-muted-foreground active:bg-secondary/50 active:scale-95"
+          )}
+        >
+          {showOverflow ? <X size={24} strokeWidth={2} /> : <MoreHorizontal size={24} strokeWidth={showOverflow || isActiveOverflowItem ? 2.5 : 2} />}
+          <span className="text-[10px] font-medium">{showOverflow ? "Close" : "More"}</span>
+        </button>
+      </nav>
+
+      {/* ── Mobile overflow menu ── */}
+      {showOverflow && (
+        <div className="md:hidden fixed inset-0 z-40 bg-background/90 backdrop-blur-md" onClick={() => setShowOverflow(false)}>
+          <div 
+            className="absolute bottom-20 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-4 safe-area-inset-bottom shadow-2xl animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="grid grid-cols-3 gap-3">
+              {mobileOverflowLinks.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setShowOverflow(false)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2 p-4 rounded-xl min-h-[88px] transition-all touch-feedback",
+                    path === href
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-muted-foreground active:scale-95 active:bg-secondary"
+                  )}
+                >
+                  <Icon size={28} strokeWidth={path === href ? 2.5 : 2} />
+                  <span className="text-xs font-medium">{label}</span>
+                </Link>
+              ))}
+            </div>
+            {/* Settings link at bottom */}
+            <div className="mt-4 pt-4 border-t border-border">
+              <Link
+                href={mobileSettingsLink.href}
+                onClick={() => setShowOverflow(false)}
+                className={cn(
+                  "flex items-center justify-between w-full px-4 py-4 rounded-xl transition-all min-h-[52px] touch-feedback",
+                  path === mobileSettingsLink.href
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary/50 text-muted-foreground active:scale-[0.98] active:bg-secondary"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <mobileSettingsLink.icon size={22} strokeWidth={path === mobileSettingsLink.href ? 2.5 : 2} />
+                  <span className="text-sm font-medium">{mobileSettingsLink.label}</span>
+                </div>
+                {path === mobileSettingsLink.href && (
+                  <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                )}
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

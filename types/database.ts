@@ -38,9 +38,11 @@ export type Database = {
         Row: {
           context: string | null
           created_at: string | null
+          daily_intent: string | null
           energy_level: number | null
           id: string
           other_priorities: string[] | null
+          say_no_to: string | null
           time_of_day: string | null
           top_priority: string
           updated_at: string | null
@@ -49,9 +51,11 @@ export type Database = {
         Insert: {
           context?: string | null
           created_at?: string | null
+          daily_intent?: string | null
           energy_level?: number | null
           id?: string
           other_priorities?: string[] | null
+          say_no_to?: string | null
           time_of_day?: string | null
           top_priority: string
           updated_at?: string | null
@@ -60,9 +64,11 @@ export type Database = {
         Update: {
           context?: string | null
           created_at?: string | null
+          daily_intent?: string | null
           energy_level?: number | null
           id?: string
           other_priorities?: string[] | null
+          say_no_to?: string | null
           time_of_day?: string | null
           top_priority?: string
           updated_at?: string | null
@@ -239,6 +245,156 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          id: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+          notifications_enabled: boolean
+          morning_checkin_enabled: boolean
+          morning_checkin_time: string
+          midday_checkin_enabled: boolean
+          midday_checkin_time: string
+          evening_checkin_enabled: boolean
+          evening_checkin_time: string
+          task_start_enabled: boolean
+          task_start_minutes_before: number
+          overdue_task_enabled: boolean
+          overdue_task_check_time: string
+          reflection_enabled: boolean
+          reflection_time: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          notifications_enabled?: boolean
+          morning_checkin_enabled?: boolean
+          morning_checkin_time?: string
+          midday_checkin_enabled?: boolean
+          midday_checkin_time?: string
+          evening_checkin_enabled?: boolean
+          evening_checkin_time?: string
+          task_start_enabled?: boolean
+          task_start_minutes_before?: number
+          overdue_task_enabled?: boolean
+          overdue_task_check_time?: string
+          reflection_enabled?: boolean
+          reflection_time?: string
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          notifications_enabled?: boolean
+          morning_checkin_enabled?: boolean
+          morning_checkin_time?: string
+          midday_checkin_enabled?: boolean
+          midday_checkin_time?: string
+          evening_checkin_enabled?: boolean
+          evening_checkin_time?: string
+          task_start_enabled?: boolean
+          task_start_minutes_before?: number
+          overdue_task_enabled?: boolean
+          overdue_task_check_time?: string
+          reflection_enabled?: boolean
+          reflection_time?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          id: string
+          created_at: string | null
+          user_id: string
+          endpoint: string
+          p256dh_key: string
+          auth_key: string
+          user_agent: string | null
+          device_name: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          user_id: string
+          endpoint: string
+          p256dh_key: string
+          auth_key: string
+          user_agent?: string | null
+          device_name?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          user_id?: string
+          endpoint?: string
+          p256dh_key?: string
+          auth_key?: string
+          user_agent?: string | null
+          device_name?: string | null
+        }
+        Relationships: []
+      }
+      notification_log: {
+        Row: {
+          id: string
+          created_at: string | null
+          user_id: string
+          notification_type: string
+          title: string | null
+          body: string | null
+          sent: boolean
+          error_message: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          user_id: string
+          notification_type: string
+          title?: string | null
+          body?: string | null
+          sent?: boolean
+          error_message?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          user_id?: string
+          notification_type?: string
+          title?: string | null
+          body?: string | null
+          sent?: boolean
+          error_message?: string | null
+        }
+        Relationships: []
+      }
+      north_star: {
+        Row: {
+          id: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+          content: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          content: string
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          content?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string | null
@@ -257,6 +413,14 @@ export type Database = {
           title: string
           updated_at: string | null
           user_id: string
+          focus_mode: string | null
+          recurrence_type: string | null
+          recurrence_interval: number | null
+          recurrence_end_date: string | null
+          recurrence_weekdays: number[] | null
+          parent_task_id: string | null
+          skipped_dates: string[] | null
+          is_recurrence_template: boolean | null
         }
         Insert: {
           created_at?: string | null
@@ -275,6 +439,14 @@ export type Database = {
           title: string
           updated_at?: string | null
           user_id: string
+          focus_mode?: string | null
+          recurrence_type?: string | null
+          recurrence_interval?: number | null
+          recurrence_end_date?: string | null
+          recurrence_weekdays?: number[] | null
+          parent_task_id?: string | null
+          skipped_dates?: string[] | null
+          is_recurrence_template?: boolean | null
         }
         Update: {
           created_at?: string | null
@@ -293,6 +465,14 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string
+          focus_mode?: string | null
+          recurrence_type?: string | null
+          recurrence_interval?: number | null
+          recurrence_end_date?: string | null
+          recurrence_weekdays?: number[] | null
+          parent_task_id?: string | null
+          skipped_dates?: string[] | null
+          is_recurrence_template?: boolean | null
         }
         Relationships: [
           {
@@ -303,6 +483,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weekly_rhythms: {
+        Row: {
+          id: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+          day_of_week: number
+          time_block: string
+          energy_level: string
+          focus_mode: string
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          day_of_week: number
+          time_block: string
+          energy_level?: string
+          focus_mode?: string
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          day_of_week?: number
+          time_block?: string
+          energy_level?: string
+          focus_mode?: string
+          notes?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

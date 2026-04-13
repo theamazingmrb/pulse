@@ -6,6 +6,20 @@ import OnboardingFlow, {
 } from "@/components/onboarding/OnboardingFlow";
 import { Target } from "lucide-react";
 
+// Mock useAuth for components that need it (like NorthStarStep)
+vi.mock("@/lib/auth-context", () => ({
+  useAuth: () => ({ user: { id: "u1" } }),
+}));
+
+// Mock north-star lib
+vi.mock("@/lib/north-star", () => ({
+  getNorthStar: vi.fn().mockResolvedValue(null),
+  upsertNorthStar: vi.fn().mockResolvedValue({ id: "ns1", user_id: "u1", content: "Test" }),
+  MAX_CONTENT_LENGTH: 500,
+  NORTH_STAR_PROMPTS: [],
+  truncateNorthStar: vi.fn((content: string) => content),
+}));
+
 // Minimal step set for most tests
 const makeSteps = () => [
   {
@@ -214,8 +228,8 @@ describe("OnboardingFlow", () => {
   });
 
   describe("DEFAULT_ONBOARDING_STEPS", () => {
-    it("has 6 steps", () => {
-      expect(DEFAULT_ONBOARDING_STEPS).toHaveLength(6);
+    it("has 7 steps", () => {
+      expect(DEFAULT_ONBOARDING_STEPS).toHaveLength(7);
     });
 
     it("starts with the welcome step", () => {
@@ -246,9 +260,20 @@ describe("OnboardingFlow", () => {
           steps={DEFAULT_ONBOARDING_STEPS}
         />
       );
-      // Click Next through all but the last step
+      // Click through all steps
       for (let i = 0; i < DEFAULT_ONBOARDING_STEPS.length - 1; i++) {
-        await user.click(screen.getByRole("button", { name: /next/i }));
+        // North Star step uses "Save & Continue" or "Skip for now"
+        const saveButton = screen.queryByRole("button", { name: /Save & Continue/i });
+        const nextButton = screen.queryByRole("button", { name: /next/i });
+        const skipButton = screen.queryByRole("button", { name: /skip/i });
+        
+        if (saveButton && !saveButton.hasAttribute('disabled')) {
+          await user.click(saveButton);
+        } else if (nextButton) {
+          await user.click(nextButton);
+        } else if (skipButton) {
+          await user.click(skipButton);
+        }
       }
       // Last step shows "Get Started"
       await user.click(screen.getByRole("button", { name: /get started/i }));

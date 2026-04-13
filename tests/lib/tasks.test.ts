@@ -166,6 +166,7 @@ describe("createTask", () => {
       start_time: null,
       end_time: null,
       locked: false,
+      focus_mode: null,
     });
 
     expect(result?.title).toBe("Test Task");
@@ -190,6 +191,7 @@ describe("createTask", () => {
       start_time: null,
       end_time: null,
       locked: false,
+      focus_mode: null,
     });
 
     expect(result).toBeNull();
@@ -215,6 +217,7 @@ describe("createTask", () => {
       start_time: null,
       end_time: null,
       locked: false,
+      focus_mode: null,
     });
 
     expect(chain.insert).toHaveBeenCalledWith([
@@ -224,6 +227,7 @@ describe("createTask", () => {
         scheduling_mode: "manual",
         estimated_duration: 30,
         locked: false,
+        focus_mode: null,
       }),
     ]);
   });
@@ -299,12 +303,16 @@ describe("deleteTask", () => {
 
 describe("completeTask / uncompleteTask", () => {
   it("completeTask sets status to done", async () => {
-    const chain = makeChain({ data: { ...MOCK_TASK, status: "done", projects: null }, error: null });
-    mockFrom.mockReturnValueOnce(chain);
+    // First call: getTask to fetch the task
+    const getChain = makeChain({ data: { ...MOCK_TASK, projects: null }, error: null });
+    // Second call: updateTask to set status
+    const updateChain = makeChain({ data: { ...MOCK_TASK, status: "done", projects: null }, error: null });
+    
+    mockFrom.mockReturnValueOnce(getChain).mockReturnValueOnce(updateChain);
 
     const result = await completeTask("t1");
 
-    expect(chain.update).toHaveBeenCalledWith(expect.objectContaining({ status: "done" }));
+    expect(updateChain.update).toHaveBeenCalledWith(expect.objectContaining({ status: "done" }));
     expect(result?.status).toBe("done");
   });
 

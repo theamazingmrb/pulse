@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import AuthGuard from "@/components/auth-guard";
 import CheckinFlow from "@/components/checkin-flow";
+import { NotificationPrompt } from "@/components/notification-prompt";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 
@@ -28,35 +29,59 @@ function formatLastCheckin(dateStr: string): string {
 function CheckinPageContent() {
   const { user } = useAuth();
   const [lastCheckin, setLastCheckin] = useState<string | null>(null);
+  const [checkinCount, setCheckinCount] = useState(0);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("checkins")
-      .select("created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single()
-      .then(({ data }) => {
-        if (data) setLastCheckin(data.created_at);
-      });
+    
+    // Load last checkin and count
+    Promise.all([
+      supabase
+        .from("checkins")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single(),
+      supabase
+        .from("checkins")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+    ]).then(([lastResult, countResult]) => {
+      if (lastResult.data) setLastCheckin(lastResult.data.created_at);
+      if (countResult.count !== null) setCheckinCount(countResult.count);
+    });
   }, [user]);
+
+  const handleCheckinComplete = () => {
+    // Show notification prompt after first check-in
+    if (checkinCount === 0) {
+      setShowNotificationPrompt(true);
+    }
+    setCheckinCount(prev => prev + 1);
+  };
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1">Check-in</h1>
-        <p className="text-muted-foreground text-sm">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-xl font-bold mb-1">Check-in</h1>
+        <p className="text-base md:text-sm text-muted-foreground">
           Pause. Recalibrate. What&apos;s your real priority right now?
         </p>
         {lastCheckin && (
-          <p className="text-muted-foreground text-xs mt-1">
+          <p className="text-sm md:text-xs text-muted-foreground mt-1">
             Last checked in: {formatLastCheckin(lastCheckin)}
           </p>
         )}
       </div>
-      <CheckinFlow />
+      <CheckinFlow onComplete={handleCheckinComplete} />
+      
+      {/* Show notification prompt after first check-in */}
+      <NotificationPrompt 
+        showOnFirstCheckin={showNotificationPrompt}
+        onDismiss={() => setShowNotificationPrompt(false)}
+      />
     </div>
   );
 }
