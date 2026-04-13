@@ -79,7 +79,7 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
-      <Card className="w-full max-w-md border-border/50 shadow-lg">
+      <Card className="w-full max-w-md border-border/50 shadow-lg overflow-visible">
         <CardHeader className="space-y-1 text-center">
           <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="w-6 h-6 text-primary" />
