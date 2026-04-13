@@ -9,16 +9,17 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state");
 
   if (error) {
-    return NextResponse.redirect(`${BASE_URL}?error=${error}`);
+    return NextResponse.redirect(`${BASE_URL}/dashboard?google_error=${error}`);
   }
   if (!code) {
-    return NextResponse.redirect(`${BASE_URL}?error=no_code`);
+    return NextResponse.redirect(`${BASE_URL}/dashboard?google_error=no_code`);
   }
   if (!state) {
-    return NextResponse.redirect(`${BASE_URL}?error=missing_state`);
+    return NextResponse.redirect(`${BASE_URL}/dashboard?google_error=missing_state`);
   }
 
   try {
+    // Exchange code for tokens
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -32,16 +33,21 @@ export async function GET(req: NextRequest) {
     });
 
     if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text();
+      console.error("Token exchange failed:", errorData);
       throw new Error("Failed to exchange code for token");
     }
 
     const tokenData = await tokenResponse.json();
 
+    // Store in a secure cookie for the client to process
+    // The client will then save to Supabase with user context
     const cookieValue = JSON.stringify({
       access_token: tokenData.access_token,
       refresh_token: tokenData.refresh_token,
       expires_in: tokenData.expires_in,
       state,
+      scope: tokenData.scope,
     });
 
     const response = NextResponse.redirect(`${BASE_URL}/dashboard?google_connected=true`);
@@ -49,13 +55,13 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60,
+      maxAge: 60, // 1 minute to process
       path: "/",
     });
 
     return response;
   } catch (err) {
     console.error("Google callback error:", err);
-    return NextResponse.redirect(`${BASE_URL}?error=google_callback_failed`);
+    return NextResponse.redirect(`${BASE_URL}/dashboard?google_error=callback_failed`);
   }
 }

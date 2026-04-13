@@ -1,21 +1,36 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Calendar, X } from "lucide-react";
+import { Calendar, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { isGoogleConnected, initiateGoogleAuth } from "@/lib/google-calendar";
+import { isGoogleConnectedAsync, initiateGoogleAuth, handleGoogleCallback, disconnectGoogleCalendar } from "@/lib/google-calendar";
 import { useAuth } from "@/lib/auth-context";
 
 export default function GoogleCalendarConnect() {
   const { user } = useAuth();
   const [show, setShow] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Check connection status on mount and handle OAuth callback
   useEffect(() => {
-    if (!user) return;
-    const key = `google_calendar_banner_dismissed_${user.id}`;
-    const dismissed = sessionStorage.getItem(key) === "true";
-    if (!dismissed && !isGoogleConnected()) {
-      setShow(true);
+    async function checkConnection() {
+      if (!user) return;
+      
+      // Handle OAuth callback if present
+      await handleGoogleCallback();
+      
+      // Check connection status
+      const status = await isGoogleConnectedAsync();
+      setConnected(status.connected);
+      setLoading(false);
+      
+      // Show banner if not connected and not dismissed this session
+      const key = `google_calendar_banner_dismissed_${user.id}`;
+      const dismissed = sessionStorage.getItem(key) === "true";
+      setShow(!status.connected && !dismissed);
     }
+
+    checkConnection();
   }, [user]);
 
   const dismiss = () => {
@@ -25,7 +40,38 @@ export default function GoogleCalendarConnect() {
     setShow(false);
   };
 
-  if (!show) return null;
+  const handleDisconnect = async () => {
+    const success = await disconnectGoogleCalendar();
+    if (success) {
+      setConnected(false);
+      setShow(true);
+    }
+  };
+
+  // Show connected status
+  if (connected) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/5 px-4 py-3 mb-6">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <Check size={16} className="text-green-500 flex-shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            Google Calendar connected
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-xs text-muted-foreground hover:text-destructive h-8"
+          onClick={handleDisconnect}
+        >
+          Disconnect
+        </Button>
+      </div>
+    );
+  }
+
+  // Show connect banner
+  if (!show || loading) return null;
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-blue-500/30 bg-blue-500/5 px-4 py-3 mb-6">
