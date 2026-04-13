@@ -125,6 +125,7 @@ export default function ImageUpload({
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Button
+                type="button"
                 variant="secondary"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
@@ -134,6 +135,7 @@ export default function ImageUpload({
                 Replace
               </Button>
               <Button
+                type="button"
                 variant="destructive"
                 size="sm"
                 onClick={handleRemove}

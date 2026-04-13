@@ -6,12 +6,13 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { Task, TaskStatus } from "@/types";
 import { updateTask, completeTask, uncompleteTask, deleteTask, PRIORITY_CONFIG } from "@/lib/tasks";
+import { formatRecurrence, getNextOccurrenceText } from "@/lib/recurrence";
 
 import AuthGuard from "@/components/auth-guard";
 import { Button } from "@/components/ui/button";
 import PrioritySelector from "@/components/tasks/PrioritySelector";
 import WarMapSelector from "@/components/tasks/WarMapSelector";
-import { ArrowLeft, Check, Trash2, Clock, Zap, Lock, Calendar, BookOpen, Pencil } from "lucide-react";
+import { ArrowLeft, Check, Trash2, Clock, Zap, Lock, Calendar, BookOpen, Pencil, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -263,6 +264,39 @@ function TaskDetailContent() {
             </div>
           )}
         </div>
+
+        {/* Recurrence */}
+        {task.recurrence_type && (
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Recurrence</p>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 text-sm text-purple-400">
+                <Repeat size={14} />
+                {formatRecurrence(task)}
+              </span>
+              {task.is_recurrence_template && getNextOccurrenceText(task) && (
+                <span className="text-xs text-muted-foreground">
+                  • Next: {getNextOccurrenceText(task)}
+                </span>
+              )}
+              {task.recurrence_end_date && (
+                <span className="text-xs text-muted-foreground">
+                  • Ends: {new Date(task.recurrence_end_date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+              )}
+            </div>
+            {task.parent_task_id && (
+              <div className="mt-2">
+                <Link 
+                  href={`/tasks/${task.parent_task_id}`}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  View recurring task template →
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Description */}
         <div>

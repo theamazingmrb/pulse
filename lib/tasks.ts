@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import { Task } from '@/types';
 import { SchedulingService, PRIORITY_CONFIG } from './scheduling';
+import { 
+  getNextOccurrence, 
+  createTaskInstanceFromTemplate
+} from './recurrence';
 
 export { PRIORITY_CONFIG };
 
@@ -152,7 +156,53 @@ export const deleteTask = async (id: string): Promise<boolean> => {
 };
 
 export const completeTask = async (id: string): Promise<Task | null> => {
-  return updateTask(id, { status: 'done' });
+  // Get the task to check if it's a recurring task
+  const task = await getTask(id);
+  if (!task) return null;
+
+  // Update status to done
+  const updatedTask = await updateTask(id, { status: 'done' });
+  
+  // If this is a recurrence template, create the next instance
+  if (task.is_recurrence_template && task.recurrence_type) {
+    const nextDate = getNextOccurrence({
+      type: task.recurrence_type,
+      interval: task.recurrence_interval || 1,
+      endDate: task.recurrence_end_date,
+      weekdays: task.recurrence_weekdays,
+    });
+
+    if (nextDate) {
+      // Create the next instance
+      const newInstance = createTaskInstanceFromTemplate(task, nextDate);
+      await createTask(newInstance as Parameters<typeof createTask>[0]);
+    }
+  }
+
+  // If this is an instance of a recurring task, create the next instance
+  if (task.parent_task_id && task.recurrence_type) {
+    // Get the parent template
+    const parentTask = await getTask(task.parent_task_id);
+    
+    if (parentTask && parentTask.is_recurrence_template) {
+      // Find the next occurrence date based on current instance's scheduled time
+      const currentStartTime = task.start_time ? new Date(task.start_time) : new Date();
+      const nextDate = getNextOccurrence({
+        type: task.recurrence_type,
+        interval: task.recurrence_interval || 1,
+        endDate: parentTask.recurrence_end_date,
+        weekdays: task.recurrence_weekdays,
+      }, currentStartTime);
+
+      if (nextDate) {
+        // Create the next instance using parent as template
+        const newInstance = createTaskInstanceFromTemplate(parentTask, nextDate);
+        await createTask(newInstance as Parameters<typeof createTask>[0]);
+      }
+    }
+  }
+
+  return updatedTask;
 };
 
 export const uncompleteTask = async (id: string): Promise<Task | null> => {
@@ -336,4 +386,111 @@ export const getScheduledTasksForDay = async (
     ...task,
     project: task.projects || null
   }));
+};
+
+/**
+ * Get all recurring task templates
+ */
+export const getRecurringTaskTemplates = async (userId: string): Promise<Task[]> => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      projects (
+        id,
+        name,
+        color,
+        status
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('is_recurrence_template', true)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching recurring task templates:', error);
+    return [];
+  }
+
+  return (data || []).map(task => ({
+    ...task,
+    project: task.projects || null
+  }));
+};
+
+/**
+ * Get instances of a recurring task
+ */
+export const getRecurringTaskInstances = async (
+  userId: string,
+  parentTaskId: string
+): Promise<Task[]> => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      projects (
+        id,
+        name,
+        color,
+        status
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('parent_task_id', parentTaskId)
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching recurring task instances:', error);
+    return [];
+  }
+
+  return (data || []).map(task => ({
+    ...task,
+    project: task.projects || null
+  }));
+};
+
+/**
+ * Skip a specific instance of a recurring task
+ */
+export const skipRecurringInstance = async (
+  taskId: string,
+  skipDate: Date
+): Promise<Task | null> => {
+  const task = await getTask(taskId);
+  if (!task) return null;
+
+  const skipDateStr = skipDate.toISOString().split('T')[0];
+  const skippedDates = task.skipped_dates || [];
+  
+  if (skippedDates.includes(skipDateStr)) {
+    return task; // Already skipped
+  }
+
+  const updated = await updateTask(taskId, {
+    skipped_dates: [...skippedDates, skipDateStr]
+  });
+
+  return updated;
+};
+
+/**
+ * Unskip a specific instance of a recurring task
+ */
+export const unskipRecurringInstance = async (
+  taskId: string,
+  skipDate: Date
+): Promise<Task | null> => {
+  const task = await getTask(taskId);
+  if (!task) return null;
+
+  const skipDateStr = skipDate.toISOString().split('T')[0];
+  const skippedDates = task.skipped_dates || [];
+  
+  const updated = await updateTask(taskId, {
+    skipped_dates: skippedDates.filter(d => d !== skipDateStr)
+  });
+
+  return updated;
 };

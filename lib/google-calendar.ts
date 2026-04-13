@@ -1,8 +1,8 @@
 import { Task } from "@/types";
+import { supabase } from "./supabase";
 
 interface GoogleCredentials {
   accessToken: string;
-  refreshToken: string;
   expiresAt: number; // ms timestamp
 }
 
@@ -13,50 +13,183 @@ interface GCalEvent {
   end: { dateTime?: string; date?: string };
 }
 
-const STORAGE_KEY = "google_calendar_credentials";
+// Memory cache for the current session (avoids repeated API calls)
+let cachedConnection: { connected: boolean; email?: string } | null = null;
 
-export function getGoogleCredentials(): GoogleCredentials | null {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return null;
+/**
+ * Check if Google Calendar is connected for the current user
+ * Uses database storage (cross-device sync)
+ */
+export async function isGoogleConnectedAsync(): Promise<{ connected: boolean; email?: string }> {
+  if (cachedConnection) return cachedConnection;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    return { connected: false };
+  }
+
   try {
-    return JSON.parse(stored);
+    const res = await fetch("/api/google/tokens", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (!res.ok) {
+      return { connected: false };
+    }
+
+    const data = await res.json();
+    cachedConnection = { connected: data.connected, email: data.email };
+    return cachedConnection;
+  } catch {
+    return { connected: false };
+  }
+}
+
+/**
+ * Synchronous check - returns cached value or false
+ * For use in components that can't be async
+ */
+export function isGoogleConnected(): boolean {
+  return cachedConnection?.connected ?? false;
+}
+
+/**
+ * Store Google tokens in the database after OAuth callback
+ */
+export async function saveGoogleCredentials(
+  refreshToken: string,
+  accessToken: string,
+  expiresIn: number,
+  email?: string
+): Promise<boolean> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    console.error("No session for saving Google credentials");
+    return false;
+  }
+
+  try {
+    const res = await fetch("/api/google/tokens", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ refresh_token: refreshToken, email }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to save Google credentials");
+      return false;
+    }
+
+    // Update memory cache
+    cachedConnection = { connected: true, email };
+    
+    // Store access token in memory for this session
+    _memoryCredentials = {
+      accessToken,
+      expiresAt: Date.now() + expiresIn * 1000,
+    };
+
+    return true;
+  } catch (err) {
+    console.error("Error saving Google credentials:", err);
+    return false;
+  }
+}
+
+/**
+ * Disconnect Google Calendar
+ */
+export async function disconnectGoogleCalendar(): Promise<boolean> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) return false;
+
+  try {
+    const res = await fetch("/api/google/tokens", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (!res.ok) return false;
+
+    cachedConnection = null;
+    _memoryCredentials = null;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// In-memory token cache for the current session
+let _memoryCredentials: GoogleCredentials | null = null;
+
+/**
+ * Get a valid access token (refreshing if needed)
+ */
+async function getValidToken(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) return null;
+
+  // Check if we have a valid cached token
+  if (_memoryCredentials && Date.now() < _memoryCredentials.expiresAt - 60_000) {
+    return _memoryCredentials.accessToken;
+  }
+
+  // Refresh the token
+  try {
+    const res = await fetch("/api/google/refresh", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        // Token revoked or expired - clear connection
+        cachedConnection = null;
+        _memoryCredentials = null;
+      }
+      return null;
+    }
+
+    const data = await res.json();
+    
+    // Cache the new token
+    _memoryCredentials = {
+      accessToken: data.access_token,
+      expiresAt: Date.now() + data.expires_in * 1000,
+    };
+
+    return data.access_token;
   } catch {
     return null;
   }
 }
 
-export function setGoogleCredentials(creds: GoogleCredentials): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
-}
-
-export function clearGoogleCredentials(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(STORAGE_KEY);
-}
-
-export function isGoogleConnected(): boolean {
-  const creds = getGoogleCredentials();
-  return creds !== null;
-}
-
+/**
+ * Initiate Google OAuth flow
+ */
 export function initiateGoogleAuth(): void {
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
 
+  // Generate state for CSRF protection
   const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  // Store state in a cookie (survives cross-site redirect on mobile)
+  // Store state in cookie (survives cross-site redirect on mobile)
   document.cookie = `google_oauth_state=${state}; path=/; max-age=600; SameSite=Lax`;
 
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", clientId!);
   authUrl.searchParams.set("redirect_uri", redirectUri!);
   authUrl.searchParams.set("response_type", "code");
-  authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/calendar.events");
+  authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly");
   authUrl.searchParams.set("access_type", "offline");
   authUrl.searchParams.set("prompt", "consent");
   authUrl.searchParams.set("state", state);
@@ -64,79 +197,56 @@ export function initiateGoogleAuth(): void {
   window.location.href = authUrl.toString();
 }
 
+/**
+ * Handle OAuth callback - process tokens from cookie and save to database
+ * Call this on page load when google_connected=true is in the URL
+ */
 export async function handleGoogleCallback(): Promise<boolean> {
-  if (typeof window === "undefined") return false;
-
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get("google_connected") !== "true") return false;
 
+  // Clean up URL early
   window.history.replaceState({}, document.title, window.location.pathname);
 
-  const res = await fetch("/api/google/session");
-  if (!res.ok) return false;
-
-  const data = await res.json();
-
-  // Read state from cookie (survives mobile redirect)
-  const getCookie = (name: string): string | null => {
-    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-    return match ? match[2] : null;
-  };
-
-  const expectedState = getCookie("google_oauth_state");
-  document.cookie = "google_oauth_state=; path=/; max-age=0"; // Clear cookie
-
-  if (!expectedState || data.state !== expectedState) {
-    console.error("Google OAuth state mismatch — possible CSRF");
-    return false;
-  }
-
-  setGoogleCredentials({
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-    expiresAt: Date.now() + data.expires_in * 1000,
-  });
-
-  return true;
-}
-
-async function getValidToken(): Promise<string | null> {
-  const creds = getGoogleCredentials();
-  if (!creds) return null;
-
-  // Token still valid (with 60s buffer)
-  if (Date.now() < creds.expiresAt - 60_000) {
-    return creds.accessToken;
-  }
-
-  // Refresh
+  // Fetch tokens from the session endpoint (reads from cookie)
   try {
-    const res = await fetch("/api/google/refresh", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: creds.refreshToken }),
-    });
-
-    if (!res.ok) {
-      clearGoogleCredentials();
-      return null;
-    }
+    const res = await fetch("/api/google/session");
+    if (!res.ok) return false;
 
     const data = await res.json();
-    setGoogleCredentials({
-      ...creds,
-      accessToken: data.access_token,
-      expiresAt: Date.now() + data.expires_in * 1000,
-    });
 
-    return data.access_token;
-  } catch {
-    clearGoogleCredentials();
-    return null;
+    // Read state from cookie (survives mobile redirect)
+    const getCookie = (name: string): string | null => {
+      const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+      return match ? match[2] : null;
+    };
+
+    const expectedState = getCookie("google_oauth_state");
+    document.cookie = "google_oauth_state=; path=/; max-age=0"; // Clear cookie
+
+    if (!expectedState || data.state !== expectedState) {
+      console.error("Google OAuth state mismatch — possible CSRF");
+      return false;
+    }
+
+    // Save to database
+    const success = await saveGoogleCredentials(
+      data.refresh_token,
+      data.access_token,
+      data.expires_in,
+      data.email
+    );
+
+    return success;
+  } catch (err) {
+    console.error("Error processing Google callback:", err);
+    return false;
   }
 }
 
-// Returns GCal events for the day as locked Task objects the scheduler can treat as busy blocks
+/**
+ * Get calendar events as locked "busy blocks" for scheduling
+ */
 export async function getCalendarBusyBlocks(date: Date): Promise<Task[]> {
   const token = await getValidToken();
   if (!token) return [];
@@ -159,9 +269,6 @@ export async function getCalendarBusyBlocks(date: Date): Promise<Task[]> {
     if (!res.ok) return [];
 
     const data = await res.json();
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    void tz; // used in syncTaskToCalendar, not here
 
     return ((data.items as GCalEvent[]) || [])
       .filter((e) => e.start?.dateTime && e.end?.dateTime)
@@ -187,13 +294,22 @@ export async function getCalendarBusyBlocks(date: Date): Promise<Task[]> {
         created_at: "",
         updated_at: "",
         focus_mode: null,
+        recurrence_type: null,
+        recurrence_interval: 1,
+        recurrence_end_date: null,
+        recurrence_weekdays: null,
+        parent_task_id: null,
+        skipped_dates: null,
+        is_recurrence_template: false,
       }));
   } catch {
     return [];
   }
 }
 
-// Creates or updates a calendar event for a task. Returns the google_event_id.
+/**
+ * Create or update a calendar event for a task
+ */
 export async function syncTaskToCalendar(task: Task): Promise<string | null> {
   if (!task.start_time || !task.end_time) return null;
   const token = await getValidToken();
@@ -243,6 +359,9 @@ export async function syncTaskToCalendar(task: Task): Promise<string | null> {
   }
 }
 
+/**
+ * Delete a calendar event
+ */
 export async function deleteCalendarEvent(googleEventId: string): Promise<void> {
   const token = await getValidToken();
   if (!token) return;

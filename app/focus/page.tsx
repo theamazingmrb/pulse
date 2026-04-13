@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Task, FocusSession, FocusTimerPreset, SpotifyTrack, FocusMode, FOCUS_MODE_CONFIG } from "@/types";
 import { todayISO, formatTime } from "@/lib/utils";
 import { toast } from "sonner";
+import { getRecurringTaskTemplates } from "@/lib/tasks";
+
 import {
   Play,
   Pause,
@@ -19,6 +21,7 @@ import {
   Music,
   Target,
   X,
+  Repeat,
 } from "lucide-react";
 import AuthGuard from "@/components/auth-guard";
 import Image from "next/image";
@@ -52,8 +55,10 @@ export default function FocusTimerPage() {
 
   // Task selection
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [recurringTasks, setRecurringTasks] = useState<Task[]>([]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showTaskSelector, setShowTaskSelector] = useState(false);
+  const [showRecurringTasks, setShowRecurringTasks] = useState(false);
 
   // Spotify
   const [showSpotifyPicker, setShowSpotifyPicker] = useState(false);
@@ -117,6 +122,12 @@ export default function FocusTimerPage() {
       .order("created_at", { ascending: false })
       .limit(20);
     setTasks(data || []);
+    
+    // Load recurring task templates
+    if (user) {
+      const recurring = await getRecurringTaskTemplates(user.id);
+      setRecurringTasks(recurring);
+    }
   }
 
   async function loadRecentSessions() {
@@ -416,7 +427,64 @@ export default function FocusTimerPage() {
                   >
                     No task (general focus)
                   </button>
-                  {tasks.map((task) => {
+                  
+                  {/* Recurring tasks section */}
+                  {recurringTasks.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => setShowRecurringTasks(!showRecurringTasks)}
+                        className="w-full flex items-center gap-2 p-2 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                      >
+                        <Repeat size={12} />
+                        {showRecurringTasks ? "Hide" : "Show"} recurring tasks ({recurringTasks.length})
+                        {showRecurringTasks ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                      </button>
+                      
+                      {showRecurringTasks && recurringTasks.map((task) => {
+                        const taskFocusMode = task.focus_mode as FocusMode | null;
+                        return (
+                          <button
+                            key={task.id}
+                            onClick={() => setSelectedTaskId(task.id)}
+                            className={`w-full text-left p-2 rounded-lg text-sm transition-colors min-w-0 ${
+                              selectedTaskId === task.id
+                                ? "bg-purple-500/10 border border-purple-500/30"
+                                : "hover:bg-secondary border border-transparent"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Repeat size={10} className="text-purple-400 flex-shrink-0" />
+                              <span className="font-medium truncate flex-1">{task.title}</span>
+                              {taskFocusMode && (
+                                <span
+                                  className="text-[10px] px-1.5 py-0.5 rounded-full border flex-shrink-0"
+                                  style={{
+                                    backgroundColor: `${FOCUS_MODE_CONFIG[taskFocusMode]?.color}15`,
+                                    borderColor: FOCUS_MODE_CONFIG[taskFocusMode]?.color,
+                                    color: FOCUS_MODE_CONFIG[taskFocusMode]?.color,
+                                  }}
+                                >
+                                  {FOCUS_MODE_CONFIG[taskFocusMode]?.label}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate mt-0.5">
+                              {task.recurrence_type === 'daily' && task.recurrence_interval === 1 && 'Daily'}
+                              {task.recurrence_type === 'daily' && task.recurrence_interval > 1 && `Every ${task.recurrence_interval} days`}
+                              {task.recurrence_type === 'weekly' && task.recurrence_interval === 1 && 'Weekly'}
+                              {task.recurrence_type === 'weekly' && task.recurrence_interval > 1 && `Every ${task.recurrence_interval} weeks`}
+                              {task.recurrence_type === 'monthly' && 'Monthly'}
+                              {task.recurrence_type === 'yearly' && 'Yearly'}
+                              {task.recurrence_type === 'custom' && 'Custom schedule'}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </>
+                  )}
+                  
+                  {/* Regular tasks */}
+                  {tasks.filter(t => !t.is_recurrence_template).map((task) => {
                     const taskFocusMode = task.focus_mode as FocusMode | null;
                     return (
                       <button

@@ -5,7 +5,7 @@ import { getGreeting, formatTime, todayISO } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import JournalCard from "@/components/journal-card";
-import { Compass, Plus, ArrowRight, Sparkles } from "lucide-react";
+import { Compass, Plus, ArrowRight, Sparkles, FolderOpen } from "lucide-react";
 import { Journal, Checkin, Task } from "@/types";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
@@ -19,7 +19,7 @@ import FocusStats from "@/components/focus-stats";
 import { getScheduledTasksForDay, rescheduleOverdueTasks, updateTask } from "@/lib/tasks";
 import { SchedulingService } from "@/lib/scheduling";
 import {
-  isGoogleConnected,
+  isGoogleConnectedAsync,
   handleGoogleCallback,
   getCalendarBusyBlocks,
   syncTaskToCalendar,
@@ -43,7 +43,11 @@ export default function DashboardPage() {
   const [coreValues, setCoreValues] = useState<CoreValue[]>([]);
 
   useEffect(() => {
-    setGoogleConnected(isGoogleConnected());
+    // Check Google Calendar connection status (async)
+    isGoogleConnectedAsync().then((status) => {
+      setGoogleConnected(status.connected);
+    });
+    // Handle OAuth callback if present
     handleGoogleCallback().then((connected) => {
       if (connected) setGoogleConnected(true);
     });
@@ -236,6 +240,28 @@ export default function DashboardPage() {
           <GoogleCalendarConnect />
           <ReflectionReminderBanner />
           <FocusStats />
+
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Link href="/projects">
+              <Button variant="outline" size="sm">
+                <FolderOpen size={14} className="mr-2" />
+                Projects
+              </Button>
+            </Link>
+            <Link href="/tasks">
+              <Button variant="outline" size="sm">
+                <Plus size={14} className="mr-2" />
+                New Task
+              </Button>
+            </Link>
+            <Link href="/checkin">
+              <Button variant="outline" size="sm">
+                <Compass size={14} className="mr-2" />
+                Check In
+              </Button>
+            </Link>
+          </div>
 
           {/* Today's priority */}
           {latestCheckin ? (

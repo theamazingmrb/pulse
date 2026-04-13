@@ -72,6 +72,8 @@ export interface Project {
   banner_url: string | null;
 }
 
+export type RecurrenceType = "daily" | "weekly" | "monthly" | "yearly" | "custom";
+
 export interface Task {
   id: string;
   created_at: string;
@@ -95,6 +97,14 @@ export interface Task {
   google_event_id?: string | null;
   // Focus mode (optional)
   focus_mode: FocusMode | null;
+  // Recurrence fields
+  recurrence_type: RecurrenceType | null;
+  recurrence_interval: number;
+  recurrence_end_date: string | null;
+  recurrence_weekdays: number[] | null;
+  parent_task_id: string | null;
+  skipped_dates: string[] | null;
+  is_recurrence_template: boolean;
 }
 
 export interface Profile {

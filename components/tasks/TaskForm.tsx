@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Task, SchedulingMode, FocusMode, FOCUS_MODE_CONFIG } from "@/types";
+import { Task, SchedulingMode, FocusMode, FOCUS_MODE_CONFIG, RecurrenceType } from "@/types";
 import { createTask, updateTask } from "@/lib/tasks";
 import { PRIORITY_CONFIG } from "@/lib/tasks";
 import { getActiveProjects, PROJECT_COLORS } from "@/lib/projects";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Lock, Unlock, Loader2, ChevronDown, Zap, Hand, Folder, X, Check } from "lucide-react";
+import { Plus, Calendar, Lock, Unlock, Loader2, ChevronDown, Zap, Hand, Folder, X, Check, Repeat } from "lucide-react";
 import { toast } from "sonner";
 
 interface TaskFormProps {
   initialData?: Partial<Task>;
+  defaultProjectId?: string;
   onSuccess?: (task: Task) => void;
   onCancel?: () => void;
 }
@@ -24,15 +25,15 @@ const DURATION_PRESETS = [
   { mins: 120, label: "2h" },
 ];
 
-export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormProps) {
+export default function TaskForm({ initialData, defaultProjectId, onSuccess, onCancel }: TaskFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [showDetails, setShowDetails] = useState(!!initialData?.description || !!initialData?.due_date);
+  const [showDetails, setShowDetails] = useState(!!initialData?.description || !!initialData?.due_date || !!initialData?.recurrence_type);
 
   // Form state
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
-  const [projectId, setProjectId] = useState<string | null>(initialData?.project_id || null);
+  const [projectId, setProjectId] = useState<string | null>(initialData?.project_id || defaultProjectId || null);
   const [priorityLevel, setPriorityLevel] = useState(initialData?.priority_level || 1);
   const [schedulingMode, setSchedulingMode] = useState<SchedulingMode>(initialData?.scheduling_mode || "auto");
   const [estimatedDuration, setEstimatedDuration] = useState(initialData?.estimated_duration || 30);
@@ -50,6 +51,18 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
     initialData?.due_date ? new Date(initialData.due_date).toISOString().slice(0, 16) : ""
   );
   const [locked, setLocked] = useState(initialData?.locked || false);
+
+  // Recurrence state
+  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType | null>(
+    (initialData as Task & { recurrence_type?: RecurrenceType | null })?.recurrence_type || null
+  );
+  const [recurrenceInterval, setRecurrenceInterval] = useState(initialData?.recurrence_interval || 1);
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string | null>(
+    initialData?.recurrence_end_date || null
+  );
+  const [recurrenceWeekdays, setRecurrenceWeekdays] = useState<number[] | null>(
+    initialData?.recurrence_weekdays || null
+  );
 
   // Project dropdown state
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
@@ -123,6 +136,14 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         status: "active" as const,
         notes: null,
         image_url: null,
+        // Recurrence fields
+        recurrence_type: recurrenceType,
+        recurrence_interval: recurrenceInterval,
+        recurrence_end_date: recurrenceEndDate,
+        recurrence_weekdays: recurrenceWeekdays,
+        is_recurrence_template: recurrenceType !== null,
+        parent_task_id: null,
+        skipped_dates: null,
       };
 
       let result: Task | null;
@@ -161,6 +182,10 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
     setEndTime("");
     setDueDate("");
     setLocked(false);
+    setRecurrenceType(null);
+    setRecurrenceInterval(1);
+    setRecurrenceEndDate(null);
+    setRecurrenceWeekdays(null);
     setShowDetails(false);
   };
 
@@ -286,7 +311,7 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
         )}
       </div>
 
-      {/* Second row - project + scheduling mode */}
+      {/* Second row - project + scheduling mode + recurrence */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Project dropdown */}
         <div className="relative">
@@ -419,6 +444,33 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
           </button>
         </div>
 
+        {/* Recurrence chip */}
+        {recurrenceType ? (
+          <button
+            type="button"
+            onClick={() => {
+              setRecurrenceType(null);
+              setRecurrenceInterval(1);
+              setRecurrenceEndDate(null);
+              setRecurrenceWeekdays(null);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/30 transition-all hover:opacity-80"
+          >
+            <Repeat size={12} />
+            {recurrenceInterval > 1 ? `Every ${recurrenceInterval} ${recurrenceType}s` : `${recurrenceType.charAt(0).toUpperCase() + recurrenceType.slice(1)}ly`}
+            <X size={12} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setRecurrenceType("daily")}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-all"
+          >
+            <Repeat size={12} />
+            Repeat
+          </button>
+        )}
+
         {/* Lock toggle */}
         <button
           type="button"
@@ -451,7 +503,7 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
       </div>
 
       {/* Expanded details */}
-      {(showDetails || description || dueDate || schedulingMode === "manual") && (
+      {(showDetails || description || dueDate || schedulingMode === "manual" || recurrenceType) && (
         <div className="space-y-3 p-3 rounded-xl bg-secondary/30 border border-border/50">
           {/* Focus mode expanded selector (when focus is set) */}
           {focusMode && (
@@ -480,6 +532,45 @@ export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormP
                   {cfg.label}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Recurrence expanded selector */}
+          {recurrenceType && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1">
+                {(["daily", "weekly", "monthly"] as RecurrenceType[]).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setRecurrenceType(type)}
+                    className={cn(
+                      "px-2.5 py-1 text-xs rounded-full transition-all",
+                      recurrenceType === type
+                        ? "bg-purple-500 text-white"
+                        : "bg-secondary text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                ))}
+              </div>
+              {recurrenceType && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Every</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={recurrenceInterval}
+                    onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-14 px-2 py-1 text-xs border border-border rounded bg-background text-center"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {recurrenceType}{recurrenceInterval > 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 

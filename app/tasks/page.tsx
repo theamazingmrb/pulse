@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Task, TaskStatus, FocusMode, FOCUS_MODE_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
-import { Plus, Check, Trash2, Clock, Zap, Lock, ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { Plus, Check, Trash2, Clock, Zap, Lock, ChevronDown, ChevronUp, Calendar, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getTasks, deleteTask, updateTask, completeTask, uncompleteTask, PRIORITY_CONFIG } from "@/lib/tasks";
+import { formatRecurrence } from "@/lib/recurrence";
 import TaskForm from "@/components/tasks/TaskForm";
 import PrioritySelector from "@/components/tasks/PrioritySelector";
 import WarMapSelector from "@/components/tasks/WarMapSelector";
@@ -251,6 +252,11 @@ export default function TasksPage() {
                       {task.locked && (
                         <span className="flex items-center gap-1 text-amber-500">
                           <Lock size={10} /> Locked
+                        </span>
+                      )}
+                      {task.recurrence_type && (
+                        <span className="flex items-center gap-1 text-purple-400">
+                          <Repeat size={10} /> {formatRecurrence(task)}
                         </span>
                       )}
                       <span className="flex items-center gap-1">
