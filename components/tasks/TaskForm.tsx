@@ -222,7 +222,7 @@ export default function TaskForm({ initialData, defaultProjectId, onSuccess, onC
       {/* Quick settings row - chips */}
       <div className="flex flex-wrap items-center gap-2 px-1">
         {/* Priority chips */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 py-1 px-0.5">
           {priorities.map((p) => (
             <button
               key={p.level}
@@ -231,13 +231,13 @@ export default function TaskForm({ initialData, defaultProjectId, onSuccess, onC
               className={cn(
                 "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all mx-0.5",
                 priorityLevel === p.level
-                  ? "ring-2 ring-offset-1 scale-110"
+                  ? "scale-110 shadow-[0_0_0_2px_var(--tw-shadow-color)]"
                   : "opacity-40 hover:opacity-70"
               )}
               style={{
                 backgroundColor: p.color,
                 color: "white",
-                ...(priorityLevel === p.level && { ringColor: p.color }),
+                ...(priorityLevel === p.level && { boxShadow: `0 0 0 2px ${p.color}` }),
               }}
               title={`${p.label}: ${p.description}`}
             >
