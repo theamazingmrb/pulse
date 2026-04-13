@@ -336,10 +336,10 @@ function ProjectsClientInner() {
                 {/* Footer with task count and last updated */}
                 <div className="flex items-center justify-between pt-3 border-t border-border/50">
                   <Link
-                    href={`/tasks?project=${project.id}`}
+                    href={`/projects/${project.id}`}
                     className="text-sm font-medium text-primary hover:underline"
                   >
-                    View tasks →
+                    View project →
                   </Link>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />

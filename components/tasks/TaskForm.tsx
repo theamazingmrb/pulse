@@ -18,18 +18,19 @@ import { toast } from "sonner";
 
 interface TaskFormProps {
   initialData?: Partial<Task>;
+  defaultProjectId?: string;
   onSuccess?: (task: Task) => void;
   onCancel?: () => void;
 }
 
-export default function TaskForm({ initialData, onSuccess, onCancel }: TaskFormProps) {
+export default function TaskForm({ initialData, defaultProjectId, onSuccess, onCancel }: TaskFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Form state
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
-  const [projectId, setProjectId] = useState<string | null>(initialData?.project_id || null);
+  const [projectId, setProjectId] = useState<string | null>(initialData?.project_id || defaultProjectId || null);
   const [priorityLevel, setPriorityLevel] = useState(initialData?.priority_level || 1);
   const [schedulingMode, setSchedulingMode] = useState<SchedulingMode>(
     initialData?.scheduling_mode || "auto"
