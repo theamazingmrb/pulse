@@ -48,7 +48,9 @@ export function initiateGoogleAuth(): void {
   const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  sessionStorage.setItem("google_oauth_state", state);
+
+  // Store state in a cookie (survives cross-site redirect on mobile)
+  document.cookie = `google_oauth_state=${state}; path=/; max-age=600; SameSite=Lax`;
 
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", clientId!);
@@ -75,8 +77,15 @@ export async function handleGoogleCallback(): Promise<boolean> {
 
   const data = await res.json();
 
-  const expectedState = sessionStorage.getItem("google_oauth_state");
-  sessionStorage.removeItem("google_oauth_state");
+  // Read state from cookie (survives mobile redirect)
+  const getCookie = (name: string): string | null => {
+    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+    return match ? match[2] : null;
+  };
+
+  const expectedState = getCookie("google_oauth_state");
+  document.cookie = "google_oauth_state=; path=/; max-age=0"; // Clear cookie
+
   if (!expectedState || data.state !== expectedState) {
     console.error("Google OAuth state mismatch — possible CSRF");
     return false;
