@@ -5,7 +5,7 @@ import { getGreeting, formatTime, todayISO } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import JournalCard from "@/components/journal-card";
-import { Compass, Plus, ArrowRight, Sparkles, FolderOpen } from "lucide-react";
+import { Compass, Plus, ArrowRight, Sparkles, FolderOpen, AlertTriangle } from "lucide-react";
 import { Journal, Checkin, Task } from "@/types";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
@@ -40,6 +40,22 @@ export default function DashboardPage() {
   const [hasReflections, setHasReflections] = useState(false);
   const [northStar, setNorthStar] = useState<string | null>(null);
   const [coreValues, setCoreValues] = useState<CoreValue[]>([]);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Surface any google_error from the OAuth callback URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const err = urlParams.get("google_error");
+    if (err) {
+      setGoogleError(
+        err === "callback_failed"
+          ? "Google Calendar connect failed. The token exchange didn't complete — check that the Google client secret on Vercel matches the one in Google Cloud Console."
+          : err === "access_denied"
+            ? "Google Calendar access was denied. You can retry from the Connect Calendar button."
+            : `Google Calendar connect failed (${err}).`
+      );
+    }
+  }, []);
 
   useEffect(() => {
     // Check Google Calendar connection status (async)
@@ -190,6 +206,13 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold mb-1">{getGreeting()}</h1>
             <p className="text-muted-foreground text-sm">What matters most right now?</p>
           </div>
+
+          {googleError && (
+            <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 flex items-start gap-2">
+              <AlertTriangle size={16} className="text-destructive flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{googleError}</p>
+            </div>
+          )}
 
           {/* Today's priority — the heart of the app, first */}
           {latestCheckin ? (
