@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Timer, ArrowRight } from "lucide-react";
+import { Timer, ArrowRight, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -59,6 +60,16 @@ export default function FocusStats() {
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Timer size={16} className="text-primary" />
             Focus Time
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="What is Focus Time?">
+                  <HelpCircle size={13} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[220px]">
+                Minutes you&apos;ve spent in focused work sessions. Start a timer from the Focus page to build this up.
+              </TooltipContent>
+            </Tooltip>
           </CardTitle>
           <Link href="/focus">
             <Button variant="ghost" size="sm" className="text-xs gap-1">

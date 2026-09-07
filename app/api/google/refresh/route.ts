@@ -11,26 +11,32 @@ export async function POST(req: NextRequest) {
   }
 
   const accessToken = authHeader.substring(7);
+  const body = await req.json();
+  const accountId = body?.account_id;
 
-  // Use service role to get user from access token
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
-  // Verify the access token and get user
   const authClient = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
-  
+
   if (authError || !user) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // Get the refresh token from profile
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("google_refresh_token")
-    .eq("id", user.id)
-    .single();
+  // Get the refresh token for the requested account (or the primary one)
+  let query = supabase
+    .from("google_calendar_accounts")
+    .select("id, refresh_token, google_email")
+    .eq("user_id", user.id);
 
-  if (profileError || !profile?.google_refresh_token) {
+  if (accountId) {
+    query = query.eq("id", accountId);
+  } else {
+    query = query.eq("is_primary", true);
+  }
+
+  const { data: account, error: accountError } = await query.single();
+
+  if (accountError || !account?.refresh_token) {
     return NextResponse.json({ error: "Google not connected" }, { status: 400 });
   }
 
@@ -40,7 +46,7 @@ export async function POST(req: NextRequest) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         grant_type: "refresh_token",
-        refresh_token: profile.google_refresh_token,
+        refresh_token: account.refresh_token,
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
       }),
@@ -49,25 +55,21 @@ export async function POST(req: NextRequest) {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error("Token refresh failed:", errorText);
-      
-      // If refresh token is invalid, clear it from profile
+
+      // If refresh token is invalid, remove the account
       if (tokenResponse.status === 400 || tokenResponse.status === 401) {
         await supabase
-          .from("profiles")
-          .update({
-            google_refresh_token: null,
-            google_connected_at: null,
-            google_email: null,
-          })
-          .eq("id", user.id);
+          .from("google_calendar_accounts")
+          .delete()
+          .eq("id", account.id);
         return NextResponse.json({ error: "Token revoked, please reconnect" }, { status: 401 });
       }
-      
+
       throw new Error("Failed to refresh token");
     }
 
     const data = await tokenResponse.json();
-    return NextResponse.json(data);
+    return NextResponse.json({ ...data, account_id: account.id, email: account.google_email });
   } catch (err) {
     console.error("Google refresh error:", err);
     return NextResponse.json({ error: "Failed to refresh token" }, { status: 500 });

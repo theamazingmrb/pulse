@@ -40,6 +40,20 @@ export async function GET(req: NextRequest) {
 
     const tokenData = await tokenResponse.json();
 
+    // Fetch the user's email so we can key the account (multi-account support)
+    let email: string | null = null;
+    try {
+      const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        email = profile.email ?? null;
+      }
+    } catch {
+      // email is optional; fall back to null
+    }
+
     // Store in a secure cookie for the client to process
     // The client will then save to Supabase with user context
     const cookieValue = JSON.stringify({
@@ -48,6 +62,7 @@ export async function GET(req: NextRequest) {
       expires_in: tokenData.expires_in,
       state,
       scope: tokenData.scope,
+      email,
     });
 
     const response = NextResponse.redirect(`${BASE_URL}/dashboard?google_connected=true`);

@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Text size scale ─────────────────────────────────────────────
+   Tailwind spacing/typography is rem-based, so scaling the root
+   font-size scales the whole UI proportionally. Applied as a class
+   on <html> by the FontSizeProvider (persisted in localStorage). */
+@layer base {
+  html { font-size: 16px; }
+  html.text-scale-sm { font-size: 14px; }
+  html.text-scale-md { font-size: 16px; }
+  html.text-scale-lg { font-size: 18px; }
+  html.text-scale-xl { font-size: 20px; }
+}
+
 @layer base {
   :root {
     --background: 0 0% 98%;

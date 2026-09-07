@@ -13,19 +13,30 @@ interface GCalEvent {
   end: { dateTime?: string; date?: string };
 }
 
+export interface GoogleAccount {
+  id: string;
+  google_email: string;
+  connected_at: string;
+  is_primary: boolean;
+}
+
 // Memory cache for the current session (avoids repeated API calls)
-let cachedConnection: { connected: boolean; email?: string } | null = null;
+let cachedAccounts: GoogleAccount[] | null = null;
+
+// Per-account in-memory token cache
+const _memoryCredentials = new Map<string, GoogleCredentials>();
 
 /**
- * Check if Google Calendar is connected for the current user
- * Uses database storage (cross-device sync)
+ * Check which Google accounts are connected for the current user
  */
-export async function isGoogleConnectedAsync(): Promise<{ connected: boolean; email?: string }> {
-  if (cachedConnection) return cachedConnection;
+export async function isGoogleConnectedAsync(): Promise<{ connected: boolean; accounts: GoogleAccount[] }> {
+  if (cachedAccounts) {
+    return { connected: cachedAccounts.length > 0, accounts: cachedAccounts };
+  }
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) {
-    return { connected: false };
+    return { connected: false, accounts: [] };
   }
 
   try {
@@ -34,27 +45,26 @@ export async function isGoogleConnectedAsync(): Promise<{ connected: boolean; em
     });
 
     if (!res.ok) {
-      return { connected: false };
+      return { connected: false, accounts: [] };
     }
 
     const data = await res.json();
-    cachedConnection = { connected: data.connected, email: data.email };
-    return cachedConnection;
+    cachedAccounts = (data.accounts ?? []) as GoogleAccount[];
+    return { connected: cachedAccounts.length > 0, accounts: cachedAccounts };
   } catch {
-    return { connected: false };
+    return { connected: false, accounts: [] };
   }
 }
 
 /**
  * Synchronous check - returns cached value or false
- * For use in components that can't be async
  */
 export function isGoogleConnected(): boolean {
-  return cachedConnection?.connected ?? false;
+  return (cachedAccounts?.length ?? 0) > 0;
 }
 
 /**
- * Store Google tokens in the database after OAuth callback
+ * Store Google tokens for a new account after OAuth callback
  */
 export async function saveGoogleCredentials(
   refreshToken: string,
@@ -83,14 +93,14 @@ export async function saveGoogleCredentials(
       return false;
     }
 
-    // Update memory cache
-    cachedConnection = { connected: true, email };
-    
-    // Store access token in memory for this session
-    _memoryCredentials = {
+    // Invalidate the account cache so it refetches
+    cachedAccounts = null;
+
+    // Store access token in memory for this session (keyed by email as a stand-in)
+    _memoryCredentials.set(email ?? "default", {
       accessToken,
       expiresAt: Date.now() + expiresIn * 1000,
-    };
+    });
 
     return true;
   } catch (err) {
@@ -100,41 +110,40 @@ export async function saveGoogleCredentials(
 }
 
 /**
- * Disconnect Google Calendar
+ * Disconnect a specific Google account (or all if no id given)
  */
-export async function disconnectGoogleCalendar(): Promise<boolean> {
+export async function disconnectGoogleCalendar(accountId?: string): Promise<boolean> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) return false;
 
   try {
-    const res = await fetch("/api/google/tokens", {
+    const url = accountId ? `/api/google/tokens?id=${encodeURIComponent(accountId)}` : "/api/google/tokens";
+    const res = await fetch(url, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
 
     if (!res.ok) return false;
 
-    cachedConnection = null;
-    _memoryCredentials = null;
+    cachedAccounts = null;
+    _memoryCredentials.clear();
     return true;
   } catch {
     return false;
   }
 }
 
-// In-memory token cache for the current session
-let _memoryCredentials: GoogleCredentials | null = null;
-
 /**
- * Get a valid access token (refreshing if needed)
+ * Get a valid access token for a specific account (refreshing if needed)
  */
-async function getValidToken(): Promise<string | null> {
+async function getValidToken(accountId: string): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) return null;
 
   // Check if we have a valid cached token
-  if (_memoryCredentials && Date.now() < _memoryCredentials.expiresAt - 60_000) {
-    return _memoryCredentials.accessToken;
+  const cached = _memoryCredentials.get(accountId);
+  if (cached && Date.now() < cached.expiresAt - 60_000) {
+    return cached.accessToken;
   }
 
   // Refresh the token
@@ -145,24 +154,25 @@ async function getValidToken(): Promise<string | null> {
         Authorization: `Bearer ${session.access_token}`,
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ account_id: accountId }),
     });
 
     if (!res.ok) {
       if (res.status === 401) {
         // Token revoked or expired - clear connection
-        cachedConnection = null;
-        _memoryCredentials = null;
+        _memoryCredentials.delete(accountId);
+        cachedAccounts = null;
       }
       return null;
     }
 
     const data = await res.json();
-    
+
     // Cache the new token
-    _memoryCredentials = {
+    _memoryCredentials.set(accountId, {
       accessToken: data.access_token,
       expiresAt: Date.now() + data.expires_in * 1000,
-    };
+    });
 
     return data.access_token;
   } catch {
@@ -208,7 +218,6 @@ export function initiateGoogleAuth(): string | null {
 
 /**
  * Handle OAuth callback - process tokens from cookie and save to database
- * Call this on page load when google_connected=true is in the URL
  */
 export async function handleGoogleCallback(): Promise<boolean> {
   const urlParams = new URLSearchParams(window.location.search);
@@ -217,7 +226,6 @@ export async function handleGoogleCallback(): Promise<boolean> {
   // Clean up URL early
   window.history.replaceState({}, document.title, window.location.pathname);
 
-  // Fetch tokens from the session endpoint (reads from cookie)
   try {
     const res = await fetch("/api/google/session");
     if (!res.ok) return false;
@@ -254,74 +262,90 @@ export async function handleGoogleCallback(): Promise<boolean> {
 }
 
 /**
- * Get calendar events as locked "busy blocks" for scheduling
+ * Get calendar events as locked "busy blocks" for scheduling, aggregated across all connected accounts
  */
 export async function getCalendarBusyBlocks(date: Date): Promise<Task[]> {
-  const token = await getValidToken();
-  if (!token) return [];
+  const { connected, accounts } = await isGoogleConnectedAsync();
+  if (!connected || accounts.length === 0) return [];
 
   const startOfDay = new Date(date);
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const url = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
-  url.searchParams.set("timeMin", startOfDay.toISOString());
-  url.searchParams.set("timeMax", endOfDay.toISOString());
-  url.searchParams.set("singleEvents", "true");
-  url.searchParams.set("orderBy", "startTime");
+  const allEvents: Task[] = [];
 
-  try {
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return [];
+  for (const account of accounts) {
+    const token = await getValidToken(account.id);
+    if (!token) continue;
 
-    const data = await res.json();
+    const url = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
+    url.searchParams.set("timeMin", startOfDay.toISOString());
+    url.searchParams.set("timeMax", endOfDay.toISOString());
+    url.searchParams.set("singleEvents", "true");
+    url.searchParams.set("orderBy", "startTime");
 
-    return ((data.items as GCalEvent[]) || [])
-      .filter((e) => e.start?.dateTime && e.end?.dateTime)
-      .map((e): Task => ({
-        id: `gcal-${e.id}`,
-        user_id: "",
-        title: e.summary || "Calendar Event",
-        description: null,
-        status: "active",
-        project_id: null,
-        notes: null,
-        due_date: null,
-        image_url: null,
-        priority_level: 2,
-        scheduling_mode: "manual",
-        estimated_duration: Math.round(
-          (new Date(e.end.dateTime!).getTime() - new Date(e.start.dateTime!).getTime()) / 60_000
-        ),
-        start_time: e.start.dateTime!,
-        end_time: e.end.dateTime!,
-        locked: true,
-        google_event_id: e.id,
-        created_at: "",
-        updated_at: "",
-        focus_mode: null,
-        recurrence_type: null,
-        recurrence_interval: 1,
-        recurrence_end_date: null,
-        recurrence_weekdays: null,
-        parent_task_id: null,
-        skipped_dates: null,
-        is_recurrence_template: false,
-      }));
-  } catch {
-    return [];
+    try {
+      const res = await fetch(url.toString(), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) continue;
+
+      const data = await res.json();
+
+      const events = ((data.items as GCalEvent[]) || [])
+        .filter((e) => e.start?.dateTime && e.end?.dateTime)
+        .map((e): Task => ({
+          id: `gcal-${account.id}-${e.id}`,
+          user_id: "",
+          title: e.summary || "Calendar Event",
+          description: null,
+          status: "active",
+          project_id: null,
+          notes: null,
+          due_date: null,
+          image_url: null,
+          priority_level: 2,
+          scheduling_mode: "manual",
+          estimated_duration: Math.round(
+            (new Date(e.end.dateTime!).getTime() - new Date(e.start.dateTime!).getTime()) / 60_000
+          ),
+          start_time: e.start.dateTime!,
+          end_time: e.end.dateTime!,
+          locked: true,
+          google_event_id: e.id,
+          created_at: "",
+          updated_at: "",
+          focus_mode: null,
+          recurrence_type: null,
+          recurrence_interval: 1,
+          recurrence_end_date: null,
+          recurrence_weekdays: null,
+          parent_task_id: null,
+          skipped_dates: null,
+          is_recurrence_template: false,
+        }));
+
+      allEvents.push(...events);
+    } catch {
+      // Skip this account on failure
+    }
   }
+
+  return allEvents;
 }
 
 /**
- * Create or update a calendar event for a task
+ * Create or update a calendar event for a task (on the primary account)
  */
 export async function syncTaskToCalendar(task: Task): Promise<string | null> {
   if (!task.start_time || !task.end_time) return null;
-  const token = await getValidToken();
+
+  const { connected, accounts } = await isGoogleConnectedAsync();
+  if (!connected || accounts.length === 0) return null;
+
+  const primary = accounts.find((a) => a.is_primary) ?? accounts[0];
+  const token = await getValidToken(primary.id);
   if (!token) return null;
 
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -369,11 +393,16 @@ export async function syncTaskToCalendar(task: Task): Promise<string | null> {
 }
 
 /**
- * Delete a calendar event
+ * Delete a calendar event (on the primary account)
  */
 export async function deleteCalendarEvent(googleEventId: string): Promise<void> {
-  const token = await getValidToken();
+  const { connected, accounts } = await isGoogleConnectedAsync();
+  if (!connected || accounts.length === 0) return;
+
+  const primary = accounts.find((a) => a.is_primary) ?? accounts[0];
+  const token = await getValidToken(primary.id);
   if (!token) return;
+
   try {
     await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/primary/events/${googleEventId}`,

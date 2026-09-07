@@ -4,7 +4,8 @@ import { PRIORITY_CONFIG } from "@/lib/tasks";
 import { formatTime } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Loader2, Link2 } from "lucide-react";
+import { Calendar, Loader2, Link2, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { initiateGoogleAuth } from "@/lib/google-calendar";
 
 interface TodayScheduleProps {
@@ -38,22 +39,39 @@ export default function TodaySchedule({
           <CardTitle className="flex items-center gap-2">
             <Calendar size={16} />
             Today&apos;s Schedule
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="What is Today's Schedule?">
+                  <HelpCircle size={13} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[240px]">
+                Your tasks auto-scheduled for today. &quot;Plan My Day&quot; places unscheduled tasks into open time slots, avoiding your calendar meetings.
+              </TooltipContent>
+            </Tooltip>
           </CardTitle>
-          <Button
-            size="sm"
-            onClick={onPlanMyDay}
-            disabled={isPlanning}
-            className="text-xs"
-          >
-            {isPlanning ? (
-              <>
-                <Loader2 size={12} className="animate-spin" />
-                Planning…
-              </>
-            ) : (
-              "Plan My Day"
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                onClick={onPlanMyDay}
+                disabled={isPlanning}
+                className="text-xs"
+              >
+                {isPlanning ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    Planning…
+                  </>
+                ) : (
+                  "Plan My Day"
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-[220px]">
+              Auto-schedule your unscheduled tasks into today&apos;s open time slots.
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardHeader>
       <CardContent>

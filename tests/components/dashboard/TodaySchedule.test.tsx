@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TodaySchedule from "@/components/dashboard/TodaySchedule";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Task } from "@/types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -50,34 +51,35 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+// Wrap in TooltipProvider since TodaySchedule now uses radix tooltips
+function renderSchedule(props: Partial<typeof defaultProps> = {}) {
+  return render(
+    <TooltipProvider>
+      <TodaySchedule {...defaultProps} {...props} />
+    </TooltipProvider>
+  );
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("TodaySchedule", () => {
   describe("empty state", () => {
     it("shows empty state message when no tasks at all", () => {
-      render(<TodaySchedule {...defaultProps} />);
+      renderSchedule();
 
       expect(screen.getByText(/No tasks scheduled yet/i)).toBeInTheDocument();
     });
 
     it("does not show empty state when there are scheduled tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask()]}
-        />
-      );
+      renderSchedule({ scheduledTasks: [makeTask()] });
 
       expect(screen.queryByText(/No tasks scheduled yet/i)).not.toBeInTheDocument();
     });
 
     it("does not show empty state when there are unscheduled auto tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          unscheduledAutoTasks={[makeTask({ start_time: null, end_time: null })]}
-        />
-      );
+      renderSchedule({
+        unscheduledAutoTasks: [makeTask({ start_time: null, end_time: null })],
+      });
 
       expect(screen.queryByText(/No tasks scheduled yet/i)).not.toBeInTheDocument();
     });
@@ -85,7 +87,7 @@ describe("TodaySchedule", () => {
 
   describe("Plan My Day button", () => {
     it("renders the Plan My Day button", () => {
-      render(<TodaySchedule {...defaultProps} />);
+      renderSchedule();
 
       expect(screen.getByRole("button", { name: /Plan My Day/i })).toBeInTheDocument();
     });
@@ -94,7 +96,7 @@ describe("TodaySchedule", () => {
       const user = userEvent.setup();
       const onPlanMyDay = vi.fn().mockResolvedValue(undefined);
 
-      render(<TodaySchedule {...defaultProps} onPlanMyDay={onPlanMyDay} />);
+      renderSchedule({ onPlanMyDay });
 
       await user.click(screen.getByRole("button", { name: /Plan My Day/i }));
 
@@ -102,20 +104,20 @@ describe("TodaySchedule", () => {
     });
 
     it("shows spinner and 'Planning…' text while isPlanning is true", () => {
-      render(<TodaySchedule {...defaultProps} isPlanning={true} />);
+      renderSchedule({ isPlanning: true });
 
       expect(screen.getByText(/Planning/i)).toBeInTheDocument();
       expect(screen.queryByText("Plan My Day")).not.toBeInTheDocument();
     });
 
     it("disables the button while isPlanning", () => {
-      render(<TodaySchedule {...defaultProps} isPlanning={true} />);
+      renderSchedule({ isPlanning: true });
 
       expect(screen.getByRole("button", { name: /Planning/i })).toBeDisabled();
     });
 
     it("button is enabled when not planning", () => {
-      render(<TodaySchedule {...defaultProps} isPlanning={false} />);
+      renderSchedule({ isPlanning: false });
 
       expect(screen.getByRole("button", { name: /Plan My Day/i })).not.toBeDisabled();
     });
@@ -123,39 +125,30 @@ describe("TodaySchedule", () => {
 
   describe("unscheduled auto tasks hint", () => {
     it("shows hint with count for a single unscheduled task", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          unscheduledAutoTasks={[makeTask({ id: "u1", start_time: null, end_time: null })]}
-        />
-      );
+      renderSchedule({
+        unscheduledAutoTasks: [makeTask({ id: "u1", start_time: null, end_time: null })],
+      });
 
       expect(screen.getByText(/1 task ready to be scheduled/i)).toBeInTheDocument();
     });
 
     it("uses plural form for multiple unscheduled tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          unscheduledAutoTasks={[
-            makeTask({ id: "u1", start_time: null, end_time: null }),
-            makeTask({ id: "u2", start_time: null, end_time: null }),
-            makeTask({ id: "u3", start_time: null, end_time: null }),
-          ]}
-        />
-      );
+      renderSchedule({
+        unscheduledAutoTasks: [
+          makeTask({ id: "u1", start_time: null, end_time: null }),
+          makeTask({ id: "u2", start_time: null, end_time: null }),
+          makeTask({ id: "u3", start_time: null, end_time: null }),
+        ],
+      });
 
       expect(screen.getByText(/3 tasks ready to be scheduled/i)).toBeInTheDocument();
     });
 
     it("does not show hint when there are no unscheduled tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask()]}
-          unscheduledAutoTasks={[]}
-        />
-      );
+      renderSchedule({
+        scheduledTasks: [makeTask()],
+        unscheduledAutoTasks: [],
+      });
 
       expect(screen.queryByText(/ready to be scheduled/i)).not.toBeInTheDocument();
     });
@@ -163,94 +156,60 @@ describe("TodaySchedule", () => {
 
   describe("scheduled task list", () => {
     it("renders a scheduled task's title", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask({ title: "Write report" })]}
-        />
-      );
+      renderSchedule({ scheduledTasks: [makeTask({ title: "Write report" })] });
 
       expect(screen.getByText("Write report")).toBeInTheDocument();
     });
 
     it("renders duration badge in minutes for short tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask({ estimated_duration: 30 })]}
-        />
-      );
+      renderSchedule({ scheduledTasks: [makeTask({ estimated_duration: 30 })] });
 
       expect(screen.getByText("30m")).toBeInTheDocument();
     });
 
     it("renders duration badge in hours for 60-minute tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask({ estimated_duration: 60 })]}
-        />
-      );
+      renderSchedule({ scheduledTasks: [makeTask({ estimated_duration: 60 })] });
 
       expect(screen.getByText("1h")).toBeInTheDocument();
     });
 
     it("renders duration badge in mixed format for 90-minute tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask({ estimated_duration: 90 })]}
-        />
-      );
+      renderSchedule({ scheduledTasks: [makeTask({ estimated_duration: 90 })] });
 
       expect(screen.getByText("1h 30m")).toBeInTheDocument();
     });
 
     it("falls back to 30m when estimated_duration is null", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask({ estimated_duration: null as unknown as number })]}
-        />
-      );
+      renderSchedule({
+        scheduledTasks: [makeTask({ estimated_duration: null as unknown as number })],
+      });
 
       expect(screen.getByText("30m")).toBeInTheDocument();
     });
 
     it("renders multiple scheduled tasks", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[
-            makeTask({ id: "t1", title: "First task" }),
-            makeTask({ id: "t2", title: "Second task" }),
-          ]}
-        />
-      );
+      renderSchedule({
+        scheduledTasks: [
+          makeTask({ id: "t1", title: "First task" }),
+          makeTask({ id: "t2", title: "Second task" }),
+        ],
+      });
 
       expect(screen.getByText("First task")).toBeInTheDocument();
       expect(screen.getByText("Second task")).toBeInTheDocument();
     });
 
     it("renders '—' for a task with no start_time", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[makeTask({ start_time: null })]}
-        />
-      );
+      renderSchedule({ scheduledTasks: [makeTask({ start_time: null })] });
 
       expect(screen.getByText("—")).toBeInTheDocument();
     });
 
     it("shows secondary empty message when unscheduled tasks exist but none are scheduled yet", () => {
-      render(
-        <TodaySchedule
-          {...defaultProps}
-          scheduledTasks={[]}
-          unscheduledAutoTasks={[makeTask({ start_time: null, end_time: null })]}
-        />
-      );
+      renderSchedule({
+        scheduledTasks: [],
+        unscheduledAutoTasks: [makeTask({ start_time: null, end_time: null })],
+      });
 
       expect(screen.getByText(/No tasks scheduled for today yet/i)).toBeInTheDocument();
     });
@@ -258,13 +217,13 @@ describe("TodaySchedule", () => {
 
   describe("Google Calendar connect prompt", () => {
     it("shows connect prompt when googleConnected is false", () => {
-      render(<TodaySchedule {...defaultProps} googleConnected={false} />);
+      renderSchedule({ googleConnected: false });
 
       expect(screen.getByText(/Connect Google Calendar/i)).toBeInTheDocument();
     });
 
     it("hides connect prompt when googleConnected is true", () => {
-      render(<TodaySchedule {...defaultProps} googleConnected={true} />);
+      renderSchedule({ googleConnected: true });
 
       expect(screen.queryByText(/Connect Google Calendar/i)).not.toBeInTheDocument();
     });
@@ -272,7 +231,7 @@ describe("TodaySchedule", () => {
 
   describe("section header", () => {
     it("renders the Today's Schedule heading", () => {
-      render(<TodaySchedule {...defaultProps} />);
+      renderSchedule();
 
       expect(screen.getByText(/Today's Schedule/i)).toBeInTheDocument();
     });

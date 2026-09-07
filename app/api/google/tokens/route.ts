@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// GET - Retrieve Google connection status and tokens for a user
+// GET - Retrieve all connected Google accounts for a user
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -12,38 +12,33 @@ export async function GET(req: NextRequest) {
   }
 
   const accessToken = authHeader.substring(7);
-  
-  // Use service role to get user from access token
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
-  // Verify the access token and get user
   const authClient = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
-  
+
   if (authError || !user) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // Get profile with Google tokens
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("google_refresh_token, google_connected_at, google_email")
-    .eq("id", user.id)
-    .single();
+  const { data: accounts, error } = await supabase
+    .from("google_calendar_accounts")
+    .select("id, google_email, connected_at, is_primary")
+    .eq("user_id", user.id)
+    .order("connected_at", { ascending: true });
 
   if (error) {
-    console.error("Error fetching profile:", error);
-    return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
+    console.error("Error fetching google accounts:", error);
+    return NextResponse.json({ error: "Failed to fetch accounts" }, { status: 500 });
   }
 
   return NextResponse.json({
-    connected: !!profile?.google_refresh_token,
-    connectedAt: profile?.google_connected_at,
-    email: profile?.google_email,
+    connected: (accounts?.length ?? 0) > 0,
+    accounts: accounts ?? [],
   });
 }
 
-// POST - Store Google tokens after OAuth callback
+// POST - Store a new Google account after OAuth callback
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -58,36 +53,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing refresh_token" }, { status: 400 });
   }
 
-  // Use service role to get user from access token
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
-  // Verify the access token and get user
   const authClient = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
-  
+
   if (authError || !user) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // Update profile with Google tokens
+  // Count existing accounts to decide is_primary
+  const { count } = await supabase
+    .from("google_calendar_accounts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const isPrimary = (count ?? 0) === 0;
+
   const { error } = await supabase
-    .from("profiles")
+    .from("google_calendar_accounts")
     .upsert({
-      id: user.id,
-      google_refresh_token: refresh_token,
-      google_connected_at: new Date().toISOString(),
-      google_email: email || null,
-    });
+      user_id: user.id,
+      google_email: email || "unknown",
+      refresh_token,
+      connected_at: new Date().toISOString(),
+      is_primary: isPrimary,
+    }, { onConflict: "user_id,google_email" });
 
   if (error) {
-    console.error("Error storing Google tokens:", error);
-    return NextResponse.json({ error: "Failed to store tokens" }, { status: 500 });
+    console.error("Error storing google account:", error);
+    return NextResponse.json({ error: "Failed to store account" }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });
 }
 
-// DELETE - Disconnect Google Calendar
+// DELETE - Disconnect a specific Google account (or all if no id given)
 export async function DELETE(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -95,30 +95,29 @@ export async function DELETE(req: NextRequest) {
   }
 
   const accessToken = authHeader.substring(7);
+  const accountId = req.nextUrl.searchParams.get("id");
 
-  // Use service role to get user from access token
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
-  // Verify the access token and get user
   const authClient = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
-  
+
   if (authError || !user) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // Remove Google tokens from profile
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      google_refresh_token: null,
-      google_connected_at: null,
-      google_email: null,
-    })
-    .eq("id", user.id);
+  let query = supabase
+    .from("google_calendar_accounts")
+    .delete()
+    .eq("user_id", user.id);
+
+  if (accountId) {
+    query = query.eq("id", accountId);
+  }
+
+  const { error } = await query;
 
   if (error) {
-    console.error("Error removing Google tokens:", error);
+    console.error("Error removing google account:", error);
     return NextResponse.json({ error: "Failed to disconnect" }, { status: 500 });
   }
 

@@ -7,6 +7,8 @@ import { SpotifyProvider } from "@/lib/spotify-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { SidebarProvider } from "@/lib/sidebar-context";
 import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { FontSizeProvider } from "@/lib/font-size-context";
 import OnboardingTrigger from "@/components/layout/OnboardingTrigger";
 import QuickAddProvider from "@/components/QuickAddProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
@@ -47,19 +49,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <AuthProvider>
-            <SpotifyProvider>
-              <SidebarProvider>
-                <QuickAddProvider>
-                  <OnboardingTrigger>
-                    <AppShell>{children}</AppShell>
-                    <Toaster position="top-right" richColors closeButton />
-                    <ServiceWorkerRegistration />
-                  </OnboardingTrigger>
-                </QuickAddProvider>
-              </SidebarProvider>
-            </SpotifyProvider>
-          </AuthProvider>
+          <TooltipProvider delayDuration={200}>
+            <FontSizeProvider>
+              <AuthProvider>
+                <SpotifyProvider>
+                  <SidebarProvider>
+                    <QuickAddProvider>
+                      <OnboardingTrigger>
+                        <AppShell>{children}</AppShell>
+                        <Toaster position="top-right" richColors closeButton />
+                        <ServiceWorkerRegistration />
+                      </OnboardingTrigger>
+                    </QuickAddProvider>
+                  </SidebarProvider>
+                </SpotifyProvider>
+              </AuthProvider>
+            </FontSizeProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

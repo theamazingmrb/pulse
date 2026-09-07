@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import { useSidebar } from "@/lib/sidebar-context";
 import Nav from "./nav";
 import { NotificationPrompt } from "./notification-prompt";
+import SpotifyRemoteController from "./spotify-remote-controller";
 
 // Pages that should render without the nav sidebar
 const NO_NAV_PATHS = ["/", "/signin", "/signup"];
@@ -38,6 +39,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {showNotificationPrompt && (
         <NotificationPrompt showOnFirstCheckin={true} />
       )}
+
+      {/* Persistent Spotify remote control for the active device */}
+      {showNav && <SpotifyRemoteController />}
     </div>
   );
 }

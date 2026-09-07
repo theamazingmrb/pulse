@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useSidebar } from "@/lib/sidebar-context";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import BrandLogo from "@/components/brand-logo";
 import Image from "next/image";
 
@@ -75,21 +76,26 @@ export default function Nav() {
 
         <nav className="flex flex-col gap-1">
           {links.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                path === href
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                collapsed && "justify-center"
+            <Tooltip key={href}>
+              <TooltipTrigger asChild>
+                <Link
+                  href={href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    path === href
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    collapsed && "justify-center"
+                  )}
+                >
+                  <Icon size={16} />
+                  {!collapsed && label}
+                </Link>
+              </TooltipTrigger>
+              {collapsed && (
+                <TooltipContent side="right">{label}</TooltipContent>
               )}
-              title={collapsed ? label : undefined}
-            >
-              <Icon size={16} />
-              {!collapsed && label}
-            </Link>
+            </Tooltip>
           ))}
         </nav>
 

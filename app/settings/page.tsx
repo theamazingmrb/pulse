@@ -18,10 +18,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bell, BellOff, Clock, ListTodo, Moon, Sun, Trash2, Loader2, Compass, Sparkles, ChevronRight } from 'lucide-react';
+import { Bell, BellOff, Clock, ListTodo, Moon, Sun, Trash2, Loader2, Compass, Sparkles, ChevronRight, Type } from 'lucide-react';
 import { toast } from 'sonner';
 import { getNorthStar } from '@/lib/north-star';
 import { getCoreValues } from '@/lib/core-values';
+import { useFontSize, FontScale } from '@/lib/font-size-context';
 
 function SettingsPageContent() {
   const router = useRouter();
@@ -44,6 +45,7 @@ function SettingsPageContent() {
   const [localPrefs, setLocalPrefs] = useState(preferences);
   const [isSaving, setIsSaving] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  const { scale: fontScale, setScale: setFontScale } = useFontSize();
   
   // Intention & Values
   const [northStar, setNorthStar] = useState<string | null>(null);
@@ -218,6 +220,56 @@ function SettingsPageContent() {
             </div>
             <ChevronRight size={16} className="text-muted-foreground" />
           </Link>
+        </CardContent>
+      </Card>
+
+      {/* Display */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Type className="h-5 w-5" />
+            Display
+          </CardTitle>
+          <CardDescription>
+            Adjust the text size across the app. Changes apply instantly and are saved on this device.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Text Size</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {fontScale === 'sm' && 'Small'}
+                {fontScale === 'md' && 'Default'}
+                {fontScale === 'lg' && 'Large'}
+                {fontScale === 'xl' && 'Extra Large'}
+              </p>
+            </div>
+            <div className="flex items-center gap-1 rounded-lg border border-border p-1">
+              {([
+                { value: 'sm', label: 'A' },
+                { value: 'md', label: 'A' },
+                { value: 'lg', label: 'A' },
+                { value: 'xl', label: 'A' },
+              ] as { value: FontScale; label: string }[]).map((opt, i) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFontScale(opt.value)}
+                  className={[
+                    'px-2.5 py-1 rounded-md text-sm font-medium transition-colors',
+                    fontScale === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                  ].join(' ')}
+                  style={{ fontSize: [12, 14, 16, 18][i] }}
+                  aria-pressed={fontScale === opt.value}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
