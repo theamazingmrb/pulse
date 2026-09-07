@@ -193,6 +193,10 @@ export default function LandingPage() {
             <span className="text-border">·</span>
             <span>Clarity over chaos</span>
           </div>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+          </div>
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Priority Compass. All rights reserved.
           </p>
