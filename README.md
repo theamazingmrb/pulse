@@ -28,27 +28,14 @@ This is for people who:
 
 ## The Core Loop
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   MORNING                    DAY                    EVENING     │
-│   ────────                   ────                   ───────     │
-│   Check-in                   Focus                  Reflect      │
-│   · Set top priority         · Work with timer      · What worked? │
-│   · Note blockers            · Log to journal       · What didn't?  │
-│   · Rate energy              · Stay on track        · Tomorrow's focus │
-│   · Set daily intent         · Focus mode filter    · Accomplished intent? │
-│                                                                 │
-│   ─────────────────────────────────────────────────────────────│
-│              North Star: Your Life Vision                       │
-│              Core Values: What Matters Most                     │
-│              WarMap: Year-Level Goals                           │
-│              Projects: Track Progress                           │
-│              Calendar: See Your Time                            │
-│              Weekly Rhythm: Energy-Based Planning               │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+| ☀️ Morning · Check-in | 🎯 Day · Focus | 🌙 Evening · Reflect |
+|----------------------|----------------|---------------------|
+| Set top priority | Work with timer | What worked? |
+| Note blockers | Log to journal | What didn't? |
+| Rate energy | Stay on track | Tomorrow's focus |
+| Set daily intent | Focus mode filter | Accomplished intent? |
+
+Anchored by your **North Star** (life vision), **Core Values**, **WarMap** (year-level goals), **Projects**, **Calendar**, and **Weekly Rhythm** (energy-based planning).
 
 **This loop creates habit.** Morning intention → Focused execution → Evening reflection.
 
