@@ -10,9 +10,8 @@ import { Journal, Checkin, Task } from "@/types";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
 import AuthGuard from "@/components/auth-guard";
-import SpotifyConnectBanner from "@/components/spotify-connect-banner";
 import ReflectionReminderBanner from "@/components/reflection-reminder-banner";
-import GoogleCalendarConnect from "@/components/google-calendar-connect";
+import ConnectionsCard from "@/components/dashboard/ConnectionsCard";
 import QuickStartGuide from "@/components/dashboard/QuickStartGuide";
 import TodaySchedule from "@/components/dashboard/TodaySchedule";
 import FocusStats from "@/components/focus-stats";
@@ -192,78 +191,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground text-sm">What matters most right now?</p>
           </div>
 
-          {/* North Star & Core Values */}
-          {(northStar || coreValues.length > 0) && (
-            <div className="mb-6 space-y-3">
-              {northStar && (
-                <Card className="bg-gradient-to-br from-amber-500/5 to-amber-500/10 border-amber-500/20">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <Compass size={16} className="text-amber-500 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">North Star</p>
-                        <p className="text-sm leading-relaxed">{northStar}</p>
-                      </div>
-                      <Link href="/settings/intention">
-                        <Button variant="ghost" size="sm" className="text-xs">Edit</Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              {coreValues.length > 0 && (
-                <div className="flex flex-wrap gap-2 items-center">
-                  <Sparkles size={14} className="text-violet-500" />
-                  {coreValues.slice(0, 5).map((v) => (
-                    <span
-                      key={v.id}
-                      className="text-xs px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-300"
-                    >
-                      {v.value_text}
-                    </span>
-                  ))}
-                  <Link href="/settings/intention">
-                    <Button variant="ghost" size="sm" className="text-xs h-6 px-2">Edit</Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-
-          <QuickStartGuide
-            hasProjects={hasProjects}
-            hasTasks={tasks.length > 0}
-            hasReflections={hasReflections}
-          />
-
-          <SpotifyConnectBanner />
-          <GoogleCalendarConnect />
-          <ReflectionReminderBanner />
-          <FocusStats />
-
-          {/* Quick Actions */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Link href="/projects">
-              <Button variant="outline" size="sm">
-                <FolderOpen size={14} className="mr-2" />
-                Projects
-              </Button>
-            </Link>
-            <Link href="/tasks">
-              <Button variant="outline" size="sm">
-                <Plus size={14} className="mr-2" />
-                New Task
-              </Button>
-            </Link>
-            <Link href="/checkin">
-              <Button variant="outline" size="sm">
-                <Compass size={14} className="mr-2" />
-                Check In
-              </Button>
-            </Link>
-          </div>
-
-          {/* Today's priority */}
+          {/* Today's priority — the heart of the app, first */}
           {latestCheckin ? (
             <Card className="mb-6 border-primary/30 bg-primary/5">
               <CardContent>
@@ -307,74 +235,145 @@ export default function DashboardPage() {
             </Link>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Active tasks */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Active Tasks</CardTitle>
-                  <Link href="/tasks">
-                    <Button variant="ghost" size="sm" className="text-xs">View all <ArrowRight size={12} /></Button>
+          {/* North Star & Core Values — quiet strip */}
+          {(northStar || coreValues.length > 0) && (
+            <div className="mb-6 rounded-xl border border-border bg-card px-4 py-3">
+              {northStar && (
+                <div className="flex items-start gap-2">
+                  <Compass size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1 min-w-0">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground/70 mr-2">North Star</span>
+                    {northStar}
+                  </p>
+                  <Link href="/settings/intention">
+                    <Button variant="ghost" size="sm" className="text-xs h-6 px-2 flex-shrink-0">Edit</Button>
                   </Link>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {tasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No active tasks.</p>
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {tasks.map((t) => (
-                      <li key={t.id}>
-                        <Link href={`/tasks/${t.id}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors group">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                          <span className="truncate group-hover:underline">{t.title}</span>
-                          {t.project_id && (
-                            <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">Project</span>
-                          )}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Link href="/tasks">
-                  <Button variant="ghost" size="sm" className="mt-3 w-full text-xs">
-                    <Plus size={12} /> Add task
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+              )}
+              {coreValues.length > 0 && (
+                <div className="flex flex-wrap gap-2 items-center mt-2">
+                  <Sparkles size={12} className="text-violet-500" />
+                  {coreValues.slice(0, 5).map((v) => (
+                    <span
+                      key={v.id}
+                      className="text-xs px-2 py-0.5 rounded-full border border-violet-500/20 bg-violet-500/5 text-violet-600 dark:text-violet-300"
+                    >
+                      {v.value_text}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-            {/* Recent check-ins */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Today&apos;s Check-ins</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {checkins.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No check-ins yet today.</p>
-                ) : (
-                  <ul className="flex flex-col gap-3">
-                    {checkins.map((c: Checkin) => (
-                      <li key={c.id} className="text-sm border-l-2 border-primary/30 pl-3">
-                        <p className="font-medium truncate">{c.top_priority}</p>
-                        <p className="text-xs text-muted-foreground">{formatTime(c.created_at)} · energy {c.energy_level}/5</p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <TodaySchedule
-            scheduledTasks={scheduledTasks}
-            unscheduledAutoTasks={tasks.filter(
-              (t) => t.scheduling_mode === "auto" && !t.start_time
-            )}
-            onPlanMyDay={planMyDay}
-            isPlanning={isPlanning}
-            googleConnected={googleConnected}
+          <QuickStartGuide
+            hasProjects={hasProjects}
+            hasTasks={tasks.length > 0}
+            hasReflections={hasReflections}
           />
+
+          <ConnectionsCard />
+          <ReflectionReminderBanner />
+
+          {/* Two-column layout: schedule/tasks left, stats/actions right */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <TodaySchedule
+                scheduledTasks={scheduledTasks}
+                unscheduledAutoTasks={tasks.filter(
+                  (t) => t.scheduling_mode === "auto" && !t.start_time
+                )}
+                onPlanMyDay={planMyDay}
+                isPlanning={isPlanning}
+                googleConnected={googleConnected}
+              />
+
+              {/* Active tasks */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Active Tasks</CardTitle>
+                    <Link href="/tasks">
+                      <Button variant="ghost" size="sm" className="text-xs">View all <ArrowRight size={12} /></Button>
+                    </Link>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {tasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No active tasks.</p>
+                  ) : (
+                    <ul className="flex flex-col gap-2">
+                      {tasks.map((t) => (
+                        <li key={t.id}>
+                          <Link href={`/tasks/${t.id}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors group">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                            <span className="truncate group-hover:underline">{t.title}</span>
+                            {t.project_id && (
+                              <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">Project</span>
+                            )}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <Link href="/tasks">
+                    <Button variant="ghost" size="sm" className="mt-3 w-full text-xs">
+                      <Plus size={12} /> Add task
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              <FocusStats />
+
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium">Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                  <Link href="/checkin">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <Compass size={14} className="mr-2" /> Check In
+                    </Button>
+                  </Link>
+                  <Link href="/tasks">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <Plus size={14} className="mr-2" /> New Task
+                    </Button>
+                  </Link>
+                  <Link href="/projects">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <FolderOpen size={14} className="mr-2" /> Projects
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Recent check-ins */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Today&apos;s Check-ins</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {checkins.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No check-ins yet today.</p>
+                  ) : (
+                    <ul className="flex flex-col gap-3">
+                      {checkins.map((c: Checkin) => (
+                        <li key={c.id} className="text-sm border-l-2 border-primary/30 pl-3">
+                          <p className="font-medium truncate">{c.top_priority}</p>
+                          <p className="text-xs text-muted-foreground">{formatTime(c.created_at)} · energy {c.energy_level}/5</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
           {/* Recent journals */}
           <div className="mt-6">
