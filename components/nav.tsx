@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X, Timer, Settings, BarChart3, FolderOpen } from "lucide-react";
+import { Home, BookOpen, CheckSquare, Compass, Play, Pause, LogOut, User, Music, ChevronLeft, ChevronRight, Map, Star, CalendarDays, MoreHorizontal, X, Timer, Settings, BarChart3, FolderOpen, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSpotify } from "@/lib/spotify-context";
 import { useAuth } from "@/lib/auth-context";
 import { useSidebar } from "@/lib/sidebar-context";
+import { useQuickAdd } from "@/components/QuickAddProvider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -28,10 +29,11 @@ const links = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-// Primary nav items shown on mobile (top 5)
-const mobilePrimaryLinks = links.slice(0, 5);
-// Settings always at the end of overflow
-const mobileOverflowLinks = links.slice(5, -1); // Exclude settings from grid
+// Primary nav items shown on mobile (Home + Check-in left, Focus + Analytics right, Quick Add center)
+const mobileLeftLinks = links.slice(0, 2);
+const mobileRightLinks = links.slice(2, 4);
+// Settings always at the end of overflow; everything else (incl. Calendar, Projects, etc.) goes to the grid
+const mobileOverflowLinks = links.slice(4, -1);
 const mobileSettingsLink = links[links.length - 1]; // Settings link
 
 export default function Nav() {
@@ -39,6 +41,7 @@ export default function Nav() {
   const { currentTrack, isPlaying, playerReady, playTrack, pause } = useSpotify();
   const { user, signOut } = useAuth();
   const { collapsed, setCollapsed } = useSidebar();
+  const { open: openQuickAdd } = useQuickAdd();
   const [showOverflow, setShowOverflow] = useState(false);
 
   const handleSignOut = async () => {
@@ -74,7 +77,29 @@ export default function Nav() {
           </button>
         </div>
 
-        <nav className="flex flex-col gap-1">
+        {/* Quick Add - desktop */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={openQuickAdd}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
+                "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20",
+                collapsed && "justify-center"
+              )}
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span className={cn("flex-1 text-left", collapsed && "hidden")}>Quick Add</span>
+              <kbd className={cn(
+                "hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-background/50 px-1.5 py-0.5 text-[10px] font-normal text-muted-foreground",
+                collapsed && "hidden"
+              )}>⌘K</kbd>
+            </button>
+          </TooltipTrigger>
+          {collapsed && <TooltipContent side="right">Quick Add (⌘K)</TooltipContent>}
+        </Tooltip>
+
+        <nav className="flex flex-col gap-1 mt-2">
           {links.map(({ href, label, icon: Icon }) => (
             <Tooltip key={href}>
               <TooltipTrigger asChild>
@@ -142,7 +167,37 @@ export default function Nav() {
 
       {/* ── Mobile bottom tab bar ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-20 border-t border-border bg-card/95 backdrop-blur-md flex items-center px-1 safe-area-inset-bottom shadow-lg">
-        {mobilePrimaryLinks.map(({ href, label, icon: Icon }) => (
+        {/* Left group */}
+        {mobileLeftLinks.map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] py-2.5 px-1 transition-all touch-feedback",
+              path === href
+                ? "text-primary"
+                : "text-muted-foreground active:bg-secondary/50 active:scale-95"
+            )}
+          >
+            <Icon size={24} strokeWidth={path === href ? 2.5 : 2} />
+            <span className="text-[10px] font-medium">{label}</span>
+          </Link>
+        ))}
+
+        {/* Center Quick Add FAB */}
+        <button
+          onClick={openQuickAdd}
+          aria-label="Quick Add Task"
+          className="flex flex-col items-center justify-center min-h-[56px] gap-0.5 px-1 transition-all touch-feedback"
+        >
+          <span className="flex items-center justify-center w-14 h-11 -mt-5 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25 border-4 border-card ring-1 ring-border active:scale-95 transition-all">
+            <Plus size={26} strokeWidth={2.5} />
+          </span>
+          <span className="text-[10px] font-medium text-muted-foreground">Add</span>
+        </button>
+
+        {/* Right group */}
+        {mobileRightLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}

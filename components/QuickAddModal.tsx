@@ -156,19 +156,31 @@ export default function QuickAddModal({ open, onOpenChange }: QuickAddModalProps
       className="rounded-lg border shadow-md"
       onKeyDown={handleKeyDown}
     >
+      {/* Header */}
+      <div className="px-5 pt-5 pb-3 border-b border-border">
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          Add a task
+        </h3>
+        <p className="text-xs text-muted-foreground mt-1">
+          Press <kbd className="px-1 py-0.5 rounded bg-secondary">Enter</kbd> to create, or fill in details below.
+        </p>
+      </div>
+
       {/* Title Input - Always visible */}
-      <div className="flex items-center border-b px-3">
-        <Sparkles className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+      <div className="flex items-center border-b px-4">
+        <span className="text-primary text-lg leading-none mr-2">→</span>
         <CommandInput
           ref={inputRef}
           placeholder="What needs to be done?"
           value={title}
           onValueChange={setTitle}
           className="flex-1"
+          autoFocus
         />
       </div>
 
-      <CommandList className="max-h-[400px]">
+      <CommandList className="max-h-[400px] py-1.5">
         <CommandEmpty className="py-6 text-center text-sm">
           {title.trim() ? "Press Enter to create task" : "Start typing to add a task"}
         </CommandEmpty>
@@ -307,16 +319,62 @@ export default function QuickAddModal({ open, onOpenChange }: QuickAddModalProps
 
         <CommandSeparator />
 
+        {/* Selection summary */}
+        <div className="px-4 py-2 flex flex-wrap items-center gap-1.5 border-t border-border/50">
+          <span className="text-xs text-muted-foreground mr-1">Summary:</span>
+          {(() => {
+            const p = PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG];
+            return (
+              <span
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: `${p.color}20`, color: p.color, border: `1px solid ${p.color}40` }}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+                {p.label}
+              </span>
+            );
+          })()}
+          {projectId && (() => {
+            const proj = projects.find((x) => x.id === projectId);
+            return proj ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: `${proj.color}20`, color: proj.color, border: `1px solid ${proj.color}40` }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: proj.color }} />
+                {proj.name}
+              </span>
+            ) : null;
+          })()}
+          {focusMode && (() => {
+            const cfg = FOCUS_MODE_CONFIG[focusMode];
+            return (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: `${cfg.color}20`, color: cfg.color, border: `1px solid ${cfg.color}40` }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.color }} />
+                {cfg.label}
+              </span>
+            );
+          })()}
+          {dueDate && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              {new Date(dueDate).toLocaleDateString([], { month: "short", day: "numeric" })}
+            </span>
+          )}
+          {!projectId && !focusMode && !dueDate && (
+            <span className="text-xs text-muted-foreground">Defaults apply — edit anytime</span>
+          )}
+        </div>
+
         {/* Submit Button */}
-        <div className="p-2">
+        <div className="p-3 pt-1">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!title.trim() || submitting}
             className={cn(
-              "w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors",
+              "w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all",
               title.trim() && !submitting
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 active:scale-[0.99]"
                 : "bg-secondary text-muted-foreground cursor-not-allowed"
             )}
           >
